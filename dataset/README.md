@@ -36,6 +36,13 @@ It does two things for each requested day:
 1) Scrapes the AoC day page and writes the HTML/text files.
 2) Fetches your puzzle input and submits solutions via a solver API, then writes input/output/meta files. If part 2 is locked, it submits part 1, re-scrapes, and then continues once part 2 becomes visible.
 
+## WARNING
+
+Do <strong>NOT</strong> run the script using your main Advent of Code account session cookie.
+The script submits answers to Advent of Code and will earn you stars.
+That means it can mark puzzles as solved even if you have not solved them yourself.
+Use a throwaway account if you want to avoid affecting your main progress.
+
 ### Usage
 Basic example (single day):
 ```bash
