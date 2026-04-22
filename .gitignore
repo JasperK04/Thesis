@@ -213,3 +213,6 @@ tools/
 .vscode/
 aoc/
 *.zip
+
+literature/*.txt
+literature/*.py
