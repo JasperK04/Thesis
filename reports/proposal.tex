@@ -1,0 +1,206 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{enumitem}
+\geometry{a4paper, margin=1.4in}
+
+\renewcommand{\today}{%
+  \ifnum\day<10 0\fi\number\day-%
+  \ifnum\month<10 0\fi\number\month-%
+  \number\year}
+
+\title{PACEcoding: Efficiency-Oriented Prompting in Multi-Agent LLM Code Generation: An Evaluation under Execution Constraints}
+\author{Jasper Kleine}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \vspace*{0.5cm}
+            
+        \LARGE
+        PACECoding: Efficiency-Oriented Prompting in Multi-Agent LLM Code Generation: An Evaluation under Execution Constraints
+            
+        \vspace{1.5cm}
+
+        \LARGE
+        Jasper Kleine
+            
+        \vfill
+
+        \vspace{0.8cm}
+            
+            
+        \Large
+        Faculteit der letteren\\
+        Rijksuniversiteit Groningen\\
+        Nederland\\
+        \today
+
+        \vspace{1cm}
+
+        \includegraphics[width=1\textwidth]{faculty_of_arts.png}
+            
+    \end{center}
+\end{titlepage}
+
+\newpage
+
+\section{Introduction and Background}
+
+Large Language Models have shown strong performance in code generation, often producing correct outputs for programming tasks. However, correctness alone is insufficient when tasks have real-world resource constraints. A correct solution that fails to run within time limits is unusable. This thesis therefore focuses on algorithmic efficiency as a practical requirement for generated code.
+
+The research gap is twofold. First, most prior work in code generation evaluates correctness only, while the role of multi-agent planning in producing more efficient algorithms remains underexplored. Second, existing efficiency-focused benchmarks show that LLMs struggle to satisfy complexity constraints, even when they produce correct code \cite{chambon2025}. This indicates that correctness does not guarantee efficiency and that current evaluation protocols do not isolate efficiency as a primary outcome.
+
+At the same time, multi-agent pipelines are increasingly used to improve reliability on complex tasks. Systems such as MapCoder \cite{islam2024}, CODESIM \cite{islam2025}, and Blueprint2Code \cite{mao2025} separate planning, coding, and debugging to emulate human workflows. These systems improve pass rates, but it remains unclear whether their additional reasoning stages also lead to more efficient algorithms.
+
+This thesis addresses that gap by studying whether a multi-agent pipeline, explicitly prompted to prefer efficient algorithms, achieves higher success rates under execution constraints than single-agent baselines.
+
+To address this gap, this thesis proposal introduces \textit{PACEcoding}, PACE Achieves Computational Efficiency in Coding, a multi-agent pipeline in which retrieval and planning agents are explicitly prompted to prioritize efficient algorithmic strategies. Solutions are tested under execution time constraints, where efficiency is reflected by whether they complete within the limit. The goal is to assess whether efficiency-oriented prompting improves success rates.
+
+\textbf{Main Research Question:}
+
+\begin{center}
+Can a multi-agent LLM system, prompted to prioritize efficient algorithms, achieve high pass rates under execution time constraints on Advent of Code problems?
+\end{center}
+
+\textbf{Subquestions:}
+
+\begin{itemize}[noitemsep]
+    \item Does explicit efficiency-oriented prompting improve pass rates under time limits compared to direct prompting?
+    \item Do multi-agent planning stages improve pass rates under the same constraints relative to single-agent baselines?
+    \item How does the multi-agent pipeline compare to existing multi-agent systems (e.g., MapCoder, CODESIM) under identical constraints?
+    \item How sensitive are outcomes to the presence or removal of individual agents in the pipeline (ablation study)?
+    \item Can fine-tuning the coding agent on past AoC solutions further improve pass rates under constraints?
+\end{itemize}
+
+\section{General Approach}
+
+\subsection*{Data Collection}
+
+This research will use problems from Advent of Code, which are algorithmically challenging and frequently require scalable solutions. AoC is suitable because many tasks become infeasible under naive algorithms when input size grows.
+
+To keep the scope feasible, the primary evaluation will focus on a curated subset of AoC tasks across multiple years. Each task will include the original problem statement, input and reference output. If time and token cost allows, a small secondary set such as HumanEval or MBPP may be used only for out of domain/robustness checks, not as a primary benchmark.
+
+\subsection*{Labels, Features, and Annotations}
+
+The primary label is correctness under constraints (\texttt{PASS/FAIL}), measured by whether a solution passes all provided tests (\texttt{PASS@1}). The efficiency is conceptually grounded in algorithmic complexity but is inferred indirectly through performance under execution time constraints.
+
+
+\subsection*{System Design}
+
+The main system will follow a multi-agent pipeline inspired by prior work. The pipeline includes four agents:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Previewing Agent:} Identifies relevant algorithms or patterns and extracts examples from the task, will be prompted to prioritize efficient algorithms.
+    \item \textbf{Planning Agent(s):} is prompted to generate multiple efficient strategies and selects one that is expected to scale well with input size.
+    \item \textbf{Coding Agent:} Implements the selected plan in the desired language, may be fine-tuned to previous AoC solutions.
+    \item \textbf{Debugging Agent:} Fixes errors and ensures correctness, also may be fine-tuned.
+\end{itemize}
+
+This design follows frameworks such as MapCoder and Blueprint2Code, which model human problem solving. I will also utilize the \href{https://github.com/kagnlp/CodeGenerator}{CodeSIM github page} as a basis to work from.
+The system will be implemented as a prompt-driven pipeline. The retrieval and planning agents will be explicitly instructed to prioritize more efficient algorithmic strategies.
+
+\subsection*{Baselines}
+
+The system will be evaluated against baseline approaches under identical constraints. The baseline set will be limited to keep the project feasible.
+
+\begin{itemize}[noitemsep]
+    \item Direct prompting
+    \item Chain-of-Thought prompting
+    \item Retrieval-augmented prompting (single-agent)
+    \item Existing multi-agent systems such as MapCoder and CODESIM
+\end{itemize}
+
+The comparison is important because it isolates the contribution of multi-agent planning and efficiency-oriented prompting. If the multi-agent system outperforms direct prompting and single-agent retrieval, it suggests that structured reasoning helps select more efficient algorithms. If it also outperforms existing multi-agent systems, it indicates that explicit efficiency prompting adds value.
+
+\subsection*{Conceptual Grounding of Efficiency}
+
+Efficiency is defined conceptually in terms of algorithmic complexity (Big-O). In this framework, a model that selects more efficient algorithms is expected to succeed more often under strict execution constraints, especially on larger inputs. The study does not label tasks with complexity classes, nor does it predict or verify complexity explicitly. Instead, efficiency is inferred from pass/fail outcomes under fixed time limits. Or more clearly with an explicit \texttt{TIMEOUT} outcome, which will also count as a fail. 
+
+\subsection*{Experimental Process}
+
+The experimental process will be as follows:
+
+\begin{enumerate}[noitemsep]
+    \item Generate a solution using a defined approach \footnote{Direct prompting, Chain-of-Thought prompting, retrieval-augmented prompting, MapCoder, CODESIM, and the proposed pipeline}
+    \item Execute the solution against the test cases with a fixed time limit
+    \item Record \texttt{PASS} or \texttt{FAIL} for each task
+\end{enumerate}
+
+An ablation study will also be conducted to evaluate the contribution of each agent.
+
+\section{Expected Output and Evaluation}
+
+\subsection*{Output}
+
+The expected outcomes include:
+
+\begin{itemize}[noitemsep]
+    \item A working multi-agent system for code generation
+    \item A dataset of generated solutions with pass/fail outcomes under constraints
+    \item A comparison between multi-agent and baseline methods
+    \item An ablation study
+    \item An average token cost of the system
+    \item An analysis of when additional planning improves success under constraints
+\end{itemize}
+
+\subsection*{Evaluation Metrics}
+
+The system will be evaluated using the following metrics:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Pass/Fail (Pass@1)}
+    \item \textbf{Pass/Fail (Pass@5)} (if time and cost allow)
+    \item \textbf{Cost}
+\end{itemize}
+
+\subsection*{Execution Constraints and Timeouts}
+
+Each generated solution is executed with a fixed time limit. A solution is marked \texttt{PASS} only if it produces the correct output within this limit. A solution is marked \texttt{FAIL} if it produces incorrect output or if execution exceeds the time limit. This timeout mechanism serves as a proxy for algorithmic efficiency: solutions with lower algorithmic complexity are more likely to complete within the limit on larger inputs, while inefficient solutions are more likely to time out. All methods will be evaluated under identical conditions.
+How exactly the time limits will be chosen will be determined based on preliminary testing to ensure that they effectively separate efficient and inefficient algorithms for the selected tasks. Most likely based on the input size and the language used.
+
+\subsection*{Expected Findings}
+
+Based on prior work, two possible outcomes are expected:
+
+\begin{itemize}[noitemsep]
+    \item The multi-agent system improves pass rates under constraints by selecting more scalable algorithms
+    \item The multi-agent system does not improve pass rates under constraints, suggesting that additional planning does not yield more efficient solutions
+\end{itemize}
+
+Both outcomes are valuable. Positive results would show that structured reasoning helps. Negative results would highlight limitations.
+
+\section{Feasibility, Scope, and Limitations}
+
+The project is scoped to all AoC tasks available. The pipeline uses standard prompting and execution infrastructure, and does not require dataset labeling or complexity analysis.
+
+Limitations include the reliance on pass/fail outcomes as a proxy for efficiency and the possibility that time limits may not perfectly separate efficient and inefficient algorithms. Multi-agent coordination can also be costly, and gains may be inconsistent across tasks. These limitations are acceptable given the focus on controlled, comparable evaluation.
+
+\section{Additional Notes}
+
+The projects scope may be adjusted to only test python solutions, as this is one of the most used languages, this will simplify execution and and also the time limit selection.
+
+When fine-tuning the coding and debugging agents, I will use a subset of the past AoC problems from the most recent years as i suspect that solutions to these problems can be found more easily.
+The evaluation will then be conducted on the older problems, which the agents have not been fine-tuned on. This will allow me to test whether fine-tuning on past solutions improves generalization to new tasks without introducing leakage.
+This may already happened though, because the base model may have been trained on some of the older AoC problems.
+
+\section{Literature}
+
+Recent work provides the foundation for this research. Multi-agent code generation systems such as MapCoder and CODESIM show that dividing tasks into stages can improve pass rates on complex problems by separating planning, coding, and debugging \cite{islam2024,islam2025}. Blueprint2Code extends this idea with structured pipelines that improve reliability through planning and iteration \cite{mao2025}.
+
+However, these systems primarily report correctness metrics and rarely isolate algorithmic efficiency as a primary outcome. BigO(Bench) demonstrates that LLMs often fail to satisfy efficiency-related constraints even when correctness is achieved \cite{chambon2025}. This highlights the need for evaluation protocols that connect planning strategies to efficiency-sensitive outcomes.
+
+DeliberationBench evaluates deliberation protocols between agents and finds limited to no gains over instantly asking a single agent \cite{kaushal2025}. This suggests that adding debate stages may not improve algorithm selection for code generation. (the other deliberation studies focus on different tasks and settings, so their findings are less transferable to algorithmic planning \cite{yang2025,sachdeva2025,rosenberg2025}.)
+
+Additional work on strategy refinement and agent memory aims to improve reasoning and reduce redundancy \cite{stein2025,fioresi2026}. Together, these studies motivate a focused evaluation of whether efficiency-oriented prompting within multi-agent pipelines improves success under execution constraints.
+
+Related work also considers computational cost in multi-agent systems. Chen et al. show that adaptive token budgeting can reduce token consumption while maintaining or improving task success, indicating that multi-agent coordination can be made more cost-efficient without sacrificing correctness \cite{chen2026}. This provides a practical motivation for reporting token cost alongside pass/fail outcomes.
+
+\nocite{*}
+\bibliographystyle{apalike}
+\bibliography{refereneces}
+
+\end{document}
