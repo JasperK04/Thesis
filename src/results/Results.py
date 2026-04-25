@@ -15,12 +15,8 @@ and will be saved as a jsonl file.
 """
 
 
-class Results(object):
-    def __init__(
-        self, 
-        result_path: str, 
-        discard_previous_run: bool = False
-    ):
+class Results:
+    def __init__(self, result_path: str, discard_previous_run: bool = False):
         self.result_path = result_path
         self.discard_previous_run = discard_previous_run
         self.load_results()
