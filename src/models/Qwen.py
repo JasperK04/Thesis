@@ -5,7 +5,6 @@ import dotenv
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from utils.token_count import token_count
 
 from .Base import BaseModel
 

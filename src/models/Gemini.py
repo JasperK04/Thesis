@@ -1,5 +1,4 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-import pprint
 import os
 import google.generativeai as genai
 import dotenv
@@ -28,7 +27,7 @@ class Gemini(BaseModel):
                     # )
                 )
                 return response.text, 0, 0
-            except Exception as e:
+            except Exception:
                 time.sleep(2)
         
         return response.text, 0, 0

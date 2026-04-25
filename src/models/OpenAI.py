@@ -4,7 +4,6 @@ import dotenv
 from openai import OpenAI, AzureOpenAI
 
 from .Base import BaseModel
-from utils.token_count import token_count
 
 dotenv.load_dotenv()
 
