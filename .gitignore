@@ -228,3 +228,4 @@ desktop.ini
 logs/*
 
 test.ipynb
+**prompt.py
