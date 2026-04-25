@@ -1,13 +1,10 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-from typing import List
-import tiktoken
-import os
 import copy
-import time
+from typing import List
 
+from datasets import Dataset
 from models.Base import BaseModel
-from datasets.Dataset import Dataset
-from results.Results import Results
+from results import Results
 from utils.parse import parse_response
 
 
@@ -87,8 +84,7 @@ class BaseStrategy(object):
             while cur_pass < self.pass_at_k and not is_solved:
                 # for _ in range(10):
                 #     try:
-                response, prompt_tokens, completion_tokens = self.run_single_pass(
-                    item)
+                response, prompt_tokens, completion_tokens = self.run_single_pass(item)
                 #     break
                 # except Exception as e:
                 #     time.sleep(5)
@@ -107,9 +103,7 @@ class BaseStrategy(object):
                 item["no_of_try"] += 1
 
                 is_solved = self.data.evaluate(
-                    item=item,
-                    cur_imp=cur_imp,
-                    language=self.language
+                    item=item, cur_imp=cur_imp, language=self.language
                 )
 
                 cur_pass += 1
@@ -129,6 +123,7 @@ class BaseStrategy(object):
 
             if self.verbose:
                 print(
-                    f'completed {i+1}/{num_items}, Solved: {self.results[i]["is_solved"]}, number of success = {num_success}/{i+1}, acc = {round(num_success/(i+1)*100, 2)}')
+                    f"completed {i + 1}/{num_items}, Solved: {self.results[i]['is_solved']}, number of success = {num_success}/{i + 1}, acc = {round(num_success / (i + 1) * 100, 2)}"
+                )
 
             # break

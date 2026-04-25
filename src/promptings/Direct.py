@@ -1,13 +1,6 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-from typing import List
-import tiktoken
-import os
-from copy import deepcopy
 
 from .Base import BaseStrategy
-from models.Base import BaseModel
-from datasets.Dataset import Dataset
-from results.Results import Results
 
 
 class DirectStrategy(BaseStrategy):

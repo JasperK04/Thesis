@@ -2,7 +2,7 @@ import re
 import xml.etree.ElementTree as ET
 from typing import Any
 
-from datasets.APPSDataset import APPSDataset
+from datasets import APPSDataset
 
 # import tiktoken
 from .Base import BaseStrategy

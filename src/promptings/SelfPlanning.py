@@ -1,23 +1,14 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-from typing import List
-import tiktoken
-import os
-from copy import deepcopy
+
+from datasets import APPSDataset, CodeContestDataset, HumanDataset, XCodeDataset
 
 from .Base import BaseStrategy
-from models.Base import BaseModel
-from results.Results import Results
 
-from datasets.Dataset import Dataset
-from datasets.APPSDataset import APPSDataset
-from datasets.XCodeDataset import XCodeDataset
-from datasets.HumanEvalDataset import HumanDataset
-from datasets.CodeContestDataset import CodeContestDataset
 
 class SelfPlanningStrategy(BaseStrategy):
     def run_single_pass(self, item: dict):
         planning_prompt = None
-        if type(self.data) == HumanDataset:
+        if isinstance(self.data, HumanDataset):
             planning_prompt = """
 def encrypt(s):
     '''
@@ -147,9 +138,8 @@ def search(lst):
     '''
 
 """
-        
 
-        if type(self.data) == APPSDataset:
+        if isinstance(self.data, APPSDataset):
             planning_prompt = """
 An accordion is a string (yes, in the real world accordions are musical instruments, but let's forget about it for a while) which can be represented as a concatenation of: an opening bracket (ASCII code $091$), a colon (ASCII code $058$), some (possibly zero) vertical line characters (ASCII code $124$), another colon, and a closing bracket (ASCII code $093$). The length of the accordion is the number of characters in it.
 
@@ -302,9 +292,8 @@ In the first example next lucky year is 5. In the second one — 300. In the thi
 7. Print the result.
 8. Call the `main` function.
 """
-        
 
-        if type(self.data) == XCodeDataset:
+        if isinstance(self.data, XCodeDataset):
             planning_prompt = """
 Problem Description:
 The Hat is a game of speedy explanation/guessing words (similar to Alias). It's fun. Try it! In this problem, we are talking about a variant of the game when the players are sitting at the table and everyone plays individually (i.e. not teams, but individual gamers play).$$$n$$$ people gathered in a room with $$$m$$$ tables ($$$n \ge 2m$$$). They want to play the Hat $$$k$$$ times. Thus, $$$k$$$ games will be played at each table. Each player will play in $$$k$$$ games.To do this, they are distributed among the tables for each game. During each game, one player plays at exactly one table. A player can play at different tables.Players want to have the most "fair" schedule of games. For this reason, they are looking for a schedule (table distribution for each game) such that:  At any table in each game there are either $$$\lfloor\frac{n}{m}\rfloor$$$ people or $$$\lceil\frac{n}{m}\rceil$$$ people (that is, either $$$n/m$$$ rounded down, or $$$n/m$$$ rounded up). Different numbers of people can play different games at the same table. Let's calculate for each player the value $$$b_i$$$ — the number of times the $$$i$$$-th player played at a table with $$$\lceil\frac{n}{m}\rceil$$$ persons ($$$n/m$$$ rounded up). Any two values of $$$b_i$$$must differ by no more than $$$1$$$. In other words, for any two players $$$i$$$ and $$$j$$$, it must be true $$$|b_i - b_j| \le 1$$$. For example, if $$$n=5$$$, $$$m=2$$$ and $$$k=2$$$, then at the request of the first item either two players or three players should play at each table. Consider the following schedules:  First game: $$$1, 2, 3$$$ are played at the first table, and $$$4, 5$$$ at the second one. The second game: at the first table they play $$$5, 1$$$, and at the second  — $$$2, 3, 4$$$. This schedule is not "fair" since $$$b_2=2$$$ (the second player played twice at a big table) and $$$b_5=0$$$ (the fifth player did not play at a big table). First game: $$$1, 2, 3$$$ are played at the first table, and $$$4, 5$$$ at the second one. The second game: at the first table they play $$$4, 5, 2$$$, and at the second one  — $$$1, 3$$$. This schedule is "fair": $$$b=[1,2,1,1,1]$$$ (any two values of $$$b_i$$$ differ by no more than $$$1$$$). Find any "fair" game schedule for $$$n$$$ people if they play on the $$$m$$$ tables of $$$k$$$ games.
@@ -407,8 +396,7 @@ Note: If you are writing a function then after the function definition take inpu
 9. Print the final result (minimal total inconvenience) for each test case.
 """
 
-
-        if type(self.data) == CodeContestDataset:
+        if isinstance(self.data, CodeContestDataset):
             planning_prompt = """
 Three little pigs from all over the world are meeting for a convention! Every minute, a triple of 3 new pigs arrives on the convention floor. After the n-th minute, the convention ends.
 
@@ -619,8 +607,7 @@ In the second query, with P=5, the only solution is a=2 and b=4.
 5. Print bases `a` and `b` for each test case, where `a = 2` and `b = P - 1`.
 6. Repeat steps 4-5 for all test cases.
 """
-        
-        
+
         input_for_planning = [
             {
                 "role": "user",
@@ -642,6 +629,8 @@ In the second query, with P=5, the only solution is a=2 and b=4.
             processed_input=input_for_implementation
         )
 
-        return implementation, \
-                prompt_tokens + prompt_tokens_2, \
-                completion_tokens + completion_tokens_2
+        return (
+            implementation,
+            prompt_tokens + prompt_tokens_2,
+            completion_tokens + completion_tokens_2,
+        )

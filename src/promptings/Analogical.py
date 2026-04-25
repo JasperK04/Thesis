@@ -1,24 +1,18 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-from typing import List
-import tiktoken
-import os
 import re
-from copy import deepcopy
 
 from .Base import BaseStrategy
-from models.Base import BaseModel
-from datasets.Dataset import Dataset
-from results.Results import Results
+
 
 # self-generate exemplars and knowledge
 class AnalogicalStrategy(BaseStrategy):
     def parse_code(self, code: str):
         if "Python3 code to solve the original problem:" in code:
             code = code.split("Python3 code to solve the original problem:")[1].strip()
-        
-        code_pattern = r'```((.|\n)*?)```'
+
+        code_pattern = r"```((.|\n)*?)```"
         if "```python" in code:
-            code_pattern = r'```python((.|\n)*?)```'
+            code_pattern = r"```python((.|\n)*?)```"
 
         code_blocks = re.findall(code_pattern, code, re.DOTALL)
 
@@ -27,19 +21,18 @@ class AnalogicalStrategy(BaseStrategy):
                 code = code.replace("```", "")
             return code
 
-        if type(code_blocks[-1]) == tuple or type(code_blocks[-1]) == list:
+        if isinstance(code_blocks[-1], (tuple, list)):
             code = "\n".join(code_blocks[-1])
-        elif type(code_blocks[-1]) == str:
+        elif isinstance(code_blocks[-1], str):
             code = code_blocks[-1]
 
         return code
-    
+
     def run_single_pass(self, item: dict):
         input = [
             {
                 "role": "user",
-                "content": 
-f"""Your goal is to write {self.language} code to solve competitive programming problems. Given a problem , explain the core concepts in it and provide other relevant problems. Then solve the original problem.
+                "content": f"""Your goal is to write {self.language} code to solve competitive programming problems. Given a problem , explain the core concepts in it and provide other relevant problems. Then solve the original problem.
 
 # Problem:
 {self.data.get_prompt(item)}
@@ -61,7 +54,7 @@ Include the following points in your response:
 - {self.language} code to solve the problem (inside ```  ``` block):""",
             },
         ]
-        print(input[0]['content'])
+        print(input[0]["content"])
 
         response, prompt_tokens, completion_tokens = self.gpt_chat(
             processed_input=input
@@ -70,4 +63,3 @@ Include the following points in your response:
         print(response)
 
         return response, prompt_tokens, completion_tokens
-
