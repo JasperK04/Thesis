@@ -1,8 +1,10 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
+from abc import ABC, abstractmethod
+
 from utils.jsonl import read_jsonl
 
 
-class Dataset(object):
+class Dataset(ABC):
     def __init__(
         self,
         path: str,
@@ -32,3 +34,9 @@ class Dataset(object):
     @staticmethod
     def get_prompt(item):
         raise NotImplementedError
+
+    @abstractmethod
+    def evaluate_sample_io(self, item, code, language) -> (bool, str):
+        """Evaluate the generated code on sample input/output pairs.
+        Returns a tuple of (passed: bool, feedback: str)."""
+        pass
