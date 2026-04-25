@@ -1,7 +1,8 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-from .Dataset import Dataset
+from constants.paths import HUMAN_WST_DATA_PATH
 from evaluations.func_evaluate import evaluate_functional_correctness, evaluate_io
-from constants.paths import *
+
+from .Dataset import Dataset
 
 
 class HumanDataset(Dataset):
@@ -18,10 +19,7 @@ class HumanDataset(Dataset):
         cur_imp: str,
         language: str,
     ):
-        result = evaluate_functional_correctness(
-            problem=item,
-            completion=cur_imp
-        )
+        result = evaluate_functional_correctness(problem=item, completion=cur_imp)
         return result == "passed"
 
     def evaluate_sample_io(
@@ -30,12 +28,11 @@ class HumanDataset(Dataset):
         cur_imp: str,
         language: str,
     ):
-        
+
         return evaluate_io(
             sample_io=item["sample_io"],
-            completion=cur_imp,            
+            completion=cur_imp,
         )
-
 
     @staticmethod
     def get_prompt(item):

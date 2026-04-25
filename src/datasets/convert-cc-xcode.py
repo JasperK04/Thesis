@@ -1,8 +1,9 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
 # Using this python file we have converted the code contest dataset to the format of the xCodeEval dataset.
 
-import pandas as pd
 import json
+
+import pandas as pd
 
 
 def read_jsonl(filename):
@@ -16,6 +17,7 @@ def read_jsonl(filename):
             # print(i)
     return lines
 
+
 # Write a python list of dictionaries into a jsonl file
 
 
@@ -26,16 +28,23 @@ def write_jsonl(filename, lines):
             file.write(json.dumps(line) + "\n")
 
 
-df = pd.read_parquet("./data/CodeContest/validation.parquet", engine='pyarrow')
-df = df[['name', 'cf_contest_id', 'cf_tags', 'difficulty',
-         'description', 'public_tests', 'private_tests', 'generated_tests']]
+df = pd.read_parquet("./data/CodeContest/validation.parquet", engine="pyarrow")
+df = df[
+    [
+        "name",
+        "cf_contest_id",
+        "cf_tags",
+        "difficulty",
+        "description",
+        "public_tests",
+        "private_tests",
+        "generated_tests",
+    ]
+]
 
 
 def get_test_cases(input, output):
-    return {
-        "input": str(input),
-        "output": [str(output)]
-    }
+    return {"input": str(input), "output": [str(output)]}
 
 
 test_datasets = []
@@ -44,21 +53,36 @@ for i in range(len(df)):
     row = df.iloc[i]
 
     public_test_cases = list(
-        map(get_test_cases, row['public_tests']['input'], row['public_tests']['output']))
+        map(get_test_cases, row["public_tests"]["input"], row["public_tests"]["output"])
+    )
     test_cases = []
-    test_cases.extend(list(map(
-        get_test_cases, row['private_tests']['input'], row['private_tests']['output'])))
-    test_cases.extend(list(map(
-        get_test_cases, row['generated_tests']['input'], row['generated_tests']['output'])))
+    test_cases.extend(
+        list(
+            map(
+                get_test_cases,
+                row["private_tests"]["input"],
+                row["private_tests"]["output"],
+            )
+        )
+    )
+    test_cases.extend(
+        list(
+            map(
+                get_test_cases,
+                row["generated_tests"]["input"],
+                row["generated_tests"]["output"],
+            )
+        )
+    )
 
     test = {
-        "name": str(row['name']),
-        "description": str(row['description']),
-        "tags": list(row['cf_tags']),
-        "difficulty": int(row['difficulty']),
-        "id": int(row['cf_contest_id']),
+        "name": str(row["name"]),
+        "description": str(row["description"]),
+        "tags": list(row["cf_tags"]),
+        "difficulty": int(row["difficulty"]),
+        "id": int(row["cf_contest_id"]),
         "sample_io": public_test_cases,
-        "test_list": test_cases
+        "test_list": test_cases,
     }
 
     test_datasets.append(test)

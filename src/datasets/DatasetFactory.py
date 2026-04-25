@@ -2,7 +2,6 @@
 from datasets.AoCDataset import AoCDataset
 from datasets.APPSDataset import APPSDataset
 from datasets.CodeContestDataset import CodeContestDataset
-from datasets.Dataset import Dataset
 from datasets.HumanEvalDataset import HumanDataset
 from datasets.MBPPDataset import MBPPDataset
 from datasets.XCodeDataset import XCodeDataset

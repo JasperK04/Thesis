@@ -1,7 +1,8 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
+from constants.paths import XCODE_VALIDATION_DATA_PATH
+from evaluations.evaluate import contest_evaluate_public_tests, xcode_evaluate
+
 from .Dataset import Dataset
-from evaluations.evalute import xcode_evaluate, contest_evaluate_public_tests
-from constants.paths import *
 
 
 class XCodeDataset(Dataset):
@@ -21,18 +22,11 @@ class XCodeDataset(Dataset):
         sample_io = []
 
         for input, output in zip(item["sample_inputs"], item["sample_outputs"]):
-            sample_io.append({
-                "input": input,
-                "output": [output]
-            })
+            sample_io.append({"input": input, "output": [output]})
 
         return contest_evaluate_public_tests(
-            generated_code=cur_imp,
-            id=item[self.id_key],
-            tests=sample_io,
-            lang=language
+            generated_code=cur_imp, id=item[self.id_key], tests=sample_io, lang=language
         )
-
 
     def evaluate(
         self,
@@ -41,9 +35,7 @@ class XCodeDataset(Dataset):
         language: str,
     ):
         return xcode_evaluate(
-            generated_code=cur_imp,
-            src_uid=item["src_uid"],
-            lang=language
+            generated_code=cur_imp, src_uid=item["src_uid"], lang=language
         )
 
     @staticmethod

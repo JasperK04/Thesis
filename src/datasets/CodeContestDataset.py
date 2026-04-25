@@ -1,12 +1,14 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
+from constants.paths import CODE_CONTEST_DATA_PATH
+from evaluations.evaluate import contest_evaluate, contest_evaluate_public_tests
+
 from .Dataset import Dataset
-from evaluations.evalute import contest_evaluate, contest_evaluate_public_tests
-from constants.paths import *
+
 
 class CodeContestDataset(Dataset):
     def __init__(
         self,
-        path: str=CODE_CONTEST_DATA_PATH,
+        path: str = CODE_CONTEST_DATA_PATH,
     ):
         super().__init__(path)
         self.id_key = "id"
@@ -21,9 +23,9 @@ class CodeContestDataset(Dataset):
             generated_code=cur_imp,
             id=item["id"],
             tests=item["test_list"],
-            lang=language
+            lang=language,
         )
-    
+
     def evaluate_sample_io(
         self,
         item: dict,
@@ -34,7 +36,7 @@ class CodeContestDataset(Dataset):
             generated_code=cur_imp,
             id=item["id"],
             tests=item["sample_io"],
-            lang=language
+            lang=language,
         )
 
     @staticmethod

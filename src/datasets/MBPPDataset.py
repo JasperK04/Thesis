@@ -1,7 +1,8 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
+from constants.paths import MBPP_DATA_PATH
+from evaluations.func_evaluate import evaluate_functional_correctness, evaluate_io
+
 from .Dataset import Dataset
-from evaluations.func_evaluate import evaluate_io, evaluate_functional_correctness
-from constants.paths import *
 
 
 class MBPPDataset(Dataset):
@@ -20,10 +21,7 @@ class MBPPDataset(Dataset):
     ):
         # result, _ = evaluate_io(item['test_list'],cur_imp,5,True)
         # return result
-        result = evaluate_functional_correctness(
-            problem=item,
-            completion=cur_imp
-        )
+        result = evaluate_functional_correctness(problem=item, completion=cur_imp)
         return result == "passed"
 
     def evaluate_sample_io(
