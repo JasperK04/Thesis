@@ -1,69 +1,55 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-import sys
-from datetime import datetime
-from constants.paths import *
-
-from models.Gemini import Gemini
-from models.OpenAI import OpenAIModel
-
-from results.Results import Results
-
-from promptings.PromptingFactory import PromptingFactory
-from datasets.DatasetFactory import DatasetFactory
-from models.ModelFactory import ModelFactory
+# Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE SECOND.
 
 import argparse
+from datetime import datetime
+
+from constants.paths import *  # noqa: F403
+from datasets.DatasetFactory import DatasetFactory
+from models.ModelFactory import ModelFactory
+from promptings.PromptingFactory import PromptingFactory
+from results.Results import Results
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
-    "--dataset", 
-    type=str, 
-    default="HumanEval", 
+    "--dataset",
+    type=str,
+    default="AoC",
     choices=[
-        "HumanEval", 
-        "MBPP", 
+        "AoC",
+        "HumanEval",
+        "MBPP",
         "APPS",
-        "xCodeEval", 
-        "CC", 
-    ]
+        "xCodeEval",
+        "CC",
+    ],
 )
 parser.add_argument(
-    "--strategy", 
-    type=str, 
-    default="MapCoder", 
-    choices=[
-        "Direct",
-        "CoT",
-        "SelfPlanning",
-        "Analogical",
-        "MapCoder",
-    ]
+    "--strategy",
+    type=str,
+    default="PACECoding",
+    choices=["Direct", "CoT", "SelfPlanning", "Analogical", "MapCoder", "PACECoding"],
 )
 parser.add_argument(
-    "--model", 
-    type=str, 
-    default="ChatGPT", 
+    "--model",
+    type=str,
+    default="Qwen",
     choices=[
         "ChatGPT",
         "GPT4",
         "Gemini",
-    ]
+        "Qwen",
+        "QwenCoder",
+        "QwenFineTuned",
+    ],
 )
+parser.add_argument("--temperature", type=float, default=0)
+parser.add_argument("--pass_at_k", type=int, default=1)
 parser.add_argument(
-    "--temperature", 
-    type=float, 
-    default=0
-)
-parser.add_argument(
-    "--pass_at_k", 
-    type=int, 
-    default=1
-)
-parser.add_argument(
-    "--language", 
-    type=str, 
-    default="Python3", 
+    "--language",
+    type=str,
+    default="Python3",
     choices=[
         "C",
         "C#",
@@ -73,7 +59,7 @@ parser.add_argument(
         "Python3",
         "Ruby",
         "Rust",
-    ]
+    ],
 )
 
 args = parser.parse_args()
@@ -88,7 +74,9 @@ LANGUAGE = args.language
 RUN_NAME = f"{MODEL_NAME}-{STRATEGY}-{DATASET}-{LANGUAGE}-{TEMPERATURE}-{PASS_AT_K}"
 RESULTS_PATH = f"./outputs/{RUN_NAME}.jsonl"
 
-print(f"#########################\nRunning start {RUN_NAME}, Time: {datetime.now()}\n##########################\n")
+print(
+    f"#########################\nRunning start {RUN_NAME}, Time: {datetime.now()}\n##########################\n"
+)
 
 strategy = PromptingFactory.get_prompting_class(STRATEGY)(
     model=ModelFactory.get_model_class(MODEL_NAME)(temperature=TEMPERATURE),
@@ -100,5 +88,6 @@ strategy = PromptingFactory.get_prompting_class(STRATEGY)(
 
 strategy.run()
 
-print(f"#########################\nRunning end {RUN_NAME}, Time: {datetime.now()}\n##########################\n")
-
+print(
+    f"#########################\nRunning end {RUN_NAME}, Time: {datetime.now()}\n##########################\n"
+)
