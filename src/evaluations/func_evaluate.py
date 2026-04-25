@@ -1,7 +1,4 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-from typing import *
-import contextlib
-import signal
 
 from .executor_utils import function_with_timeout
 
@@ -16,15 +13,20 @@ def evaluate_io(
     passed = True
     for io in sample_io:
         try:
-            code = ("from typing import *\n" if "from typing import *" not in completion else "") + \
-                completion + "\n" + io + "\n"
-            function_with_timeout(
-                exec,
-                (code, globals()),
-                timeout
+            code = (
+                (
+                    "from typing import *\n"
+                    if "from typing import *" not in completion
+                    else ""
+                )
+                + completion
+                + "\n"
+                + io
+                + "\n"
             )
+            function_with_timeout(exec, (code, globals()), timeout)
             test_log += f"passed in test case: {io}\n"
-        except Exception as e:
+        except Exception:
             if stop_early:
                 return False, f"failed in test case: {io}\n"
             passed = False
@@ -41,20 +43,26 @@ def evaluate_io_et(
 ):
     io = "\n".join(sample_io)
     try:
-        code = ("from typing import *\n" if "from typing import *" not in completion else "") + \
-            prompt + completion + "\n" + io + "\n"
-        function_with_timeout(
-            exec,
-            (code, globals()),
-            timeout
+        code = (
+            (
+                "from typing import *\n"
+                if "from typing import *" not in completion
+                else ""
+            )
+            + prompt
+            + completion
+            + "\n"
+            + io
+            + "\n"
         )
+        function_with_timeout(exec, (code, globals()), timeout)
         return True
-    except Exception as e:
+    except Exception:
         return False
 
 
 def evaluate_functional_correctness(
-    problem: Dict,
+    problem: dict,
     completion: str,
     timeout: int = 5,
     test_key: str = "test",
@@ -62,32 +70,39 @@ def evaluate_functional_correctness(
     # if problem["name"] == "mbpp_61_count_Substrings":
     #     pass
     try:
-        code = ("from typing import *\n" if "from typing import *" not in completion else "") + \
-            completion + "\n" + problem[test_key] + \
-            "\n" + f"check({problem['entry_point']})"
-
-        function_with_timeout(
-            exec,
-            (code, globals()),
-            timeout
+        code = (
+            (
+                "from typing import *\n"
+                if "from typing import *" not in completion
+                else ""
+            )
+            + completion
+            + "\n"
+            + problem[test_key]
+            + "\n"
+            + f"check({problem['entry_point']})"
         )
+
+        function_with_timeout(exec, (code, globals()), timeout)
         return "passed"
     except Exception as e:
         return f"failed: {e}"
 
 
 def evaluate_functional_correctness2(
-    problem: Dict,
+    problem: dict,
     completion: str,
     timeout: float = 10,
-) -> Dict:
+) -> dict:
 
     check_program = (
         # problem["prompt"] +
-        "from typing import *\n" +
-        completion + "\n" +
-        problem["test"] + "\n" +
-        f"check({problem['entry_point']})"
+        "from typing import *\n"
+        + completion
+        + "\n"
+        + problem["test"]
+        + "\n"
+        + f"check({problem['entry_point']})"
     )
     # print(check_program)
 
