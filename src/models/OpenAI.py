@@ -1,7 +1,8 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
 import os
+
 import dotenv
-from openai import OpenAI, AzureOpenAI
+from openai import AzureOpenAI, OpenAI
 
 from .Base import BaseModel
 
@@ -62,41 +63,47 @@ class OpenAIBaseModel(BaseModel):
     ):
         api_type = api_type or os.getenv("API_TYPE")
 
-        azure_vars = self.read_azure_env_vars()  if api_type == "azure" else {
-            "api_version": None,
-            "api_base": None,
-            "api_key": None,
-            "model": None
-        }
-        openai_vars = self.read_openai_env_vars() if api_type == "openai" else {
-            "api_version":None, 
-            "api_base": None,
-            "api_key": None,
-            "model": None
-        }
+        azure_vars = (
+            self.read_azure_env_vars()
+            if api_type == "azure"
+            else {"api_version": None, "api_base": None, "api_key": None, "model": None}
+        )
+        openai_vars = (
+            self.read_openai_env_vars()
+            if api_type == "openai"
+            else {"api_version": None, "api_base": None, "api_key": None, "model": None}
+        )
 
         api_base = api_base or openai_vars["api_base"] or azure_vars["api_base"]
-        api_version = api_version or openai_vars["api_version"] or azure_vars["api_version"]
+        api_version = (
+            api_version or openai_vars["api_version"] or azure_vars["api_version"]
+        )
         api_key = api_key or openai_vars["api_key"] or azure_vars["api_key"]
-        model_name = model_name or engine_name or openai_vars["model"] or azure_vars["model"]
+        model_name = (
+            model_name or engine_name or openai_vars["model"] or azure_vars["model"]
+        )
 
         # assert model_name is not None, "Model/Engine must be provided as model config or environment variable `OPENAI_MODEL`/`AZURE_ENGINE_NAME`"
 
-        assert api_key is not None, "API Key must be provided as model config or environment variable (`OPENAI_API_KEY` or `AZURE_API_KEY`)"
-        
+        assert api_key is not None, (
+            "API Key must be provided as model config or environment variable (`OPENAI_API_KEY` or `AZURE_API_KEY`)"
+        )
+
         if api_type == "azure":
-            assert api_base is not None, "API URL must be provided as model config or environment variable (`AZURE_API_BASE`)"
-            assert api_version is not None, "API version must be provided as model config or environment variable (`AZURE_API_VERSION`)"
+            assert api_base is not None, (
+                "API URL must be provided as model config or environment variable (`AZURE_API_BASE`)"
+            )
+            assert api_version is not None, (
+                "API version must be provided as model config or environment variable (`AZURE_API_VERSION`)"
+            )
 
         if api_type == "azure":
             self.openai = AzureOpenAI(
-                api_key=api_key,
-                api_version=api_version,
-                azure_endpoint=api_base
+                api_key=api_key, api_version=api_version, azure_endpoint=api_base
             )
         else:
             self.openai = OpenAI(api_key=api_key)
-        
+
         # GPT parameters
         self.model_params = {}
         self.model_params["model"] = model_name
@@ -105,7 +112,6 @@ class OpenAIBaseModel(BaseModel):
         self.model_params["max_tokens"] = None
         self.model_params["frequency_penalty"] = frequency_penalty
         self.model_params["presence_penalty"] = presence_penalty
-
 
     @staticmethod
     def read_azure_env_vars():
@@ -152,7 +158,7 @@ class OpenAIModel(OpenAIBaseModel):
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty,
         )
-    
+
     def summarize_response(self, response):
         """Returns the first reply from the "assistant", if available"""
         if (
@@ -166,7 +172,6 @@ class OpenAIModel(OpenAIBaseModel):
             return response["choices"][0]["message"]["content"]
 
         return response
-
 
     # @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(5))
     def prompt(self, processed_input: list[dict]):
@@ -189,16 +194,20 @@ class OpenAIModel(OpenAIBaseModel):
         self.model_params["max_tokens"] = 4096
 
         response = self.openai.chat.completions.create(
-            messages=processed_input,
-            **self.model_params
+            messages=processed_input, **self.model_params
         )
 
-        return response.choices[0].message.content, response.usage.prompt_tokens, response.usage.completion_tokens
+        return (
+            response.choices[0].message.content,
+            response.usage.prompt_tokens,
+            response.usage.completion_tokens,
+        )
 
 
 class GPT4(OpenAIModel):
     def prompt(self, processed_input: list[dict]):
-        self.model_params["model"] = "gpt-4-1106-preview"
+        # self.model_params["model"] = "gpt-4-1106-preview" # deprecated
+        self.model_params["model"] = "gpt-4.1-mini-2025-04-14"
         return super().prompt(processed_input)
 
 

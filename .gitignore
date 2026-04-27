@@ -229,3 +229,4 @@ logs/*
 
 test.ipynb
 **prompt.py
+outputs/
