@@ -1,8 +1,13 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
+import os
 from dataclasses import dataclass, field
 
 import requests
+from requests.exceptions import RequestException
+
+from . import local_executor
 from .exec_outcome import ExecOutcome
+
 
 @dataclass
 class ExtendedUnittest:
@@ -48,7 +53,12 @@ class EmptySourceCodeError(EmptyValueError):
 class APICommunication:
     _session: requests.Session
 
-    def __init__(self, server_url: str = "http://localhost:5000"):
+    def __init__(
+        self, server_url: str = "http://localhost:5000", use_local: bool = False
+    ):
+        # allow env var override
+        server_url = os.getenv("EXECUTOR_SERVER", server_url)
+        self.use_local = use_local or os.getenv("EXECUTOR_LOCAL", "0") == "1"
         self._session = requests.Session()
         self.execute_code_url = f"{server_url}/api/execute_code"
         self.get_runtimes_url = f"{server_url}/api/all_runtimes"
@@ -100,17 +110,31 @@ class APICommunication:
             stop_on_first_fail=stop_on_first_fail,
             use_sanitizer=use_sanitizer,
         )
-        json_response = self._session.post(
-            self.execute_code_url,
-            json=request_body,
-            headers={"Content-Type": "application/json"},
-        ).json()
+        if self.use_local:
+            # run locally using subprocess-based executor
+            results, sid, tid = local_executor.execute_code_locally(
+                language=language,
+                source_code=source_code,
+                unittests=unittests,
+                limits=limits,
+            )
+            return results, sample_id, task_id
+
+        try:
+            resp = self._session.post(
+                self.execute_code_url,
+                json=request_body,
+                headers={"Content-Type": "application/json"},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            json_response = resp.json()
+        except RequestException as e:
+            raise ConnectionError(
+                f"Failed to contact code execution server at {self.execute_code_url}: {e}. "
+            )
 
         if "data" not in json_response:
             return "error", sample_id, task_id
 
-        return (
-            json_response["data"],
-            sample_id,
-            task_id,
-        )
+        return json_response["data"], sample_id, task_id
