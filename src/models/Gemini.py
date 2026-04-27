@@ -1,8 +1,9 @@
-# Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
+# Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE-SECOND.
 import os
-import google.generativeai as genai
-import dotenv
 import time
+
+import dotenv
+from google import genai
 
 from .Base import BaseModel
 
@@ -10,25 +11,25 @@ dotenv.load_dotenv()
 
 
 class Gemini(BaseModel):
-    def __init__(self, temperature=0):
-        genai.configure(api_key=os.getenv("Google_API_KEY"))
-        self.model = genai.GenerativeModel('gemini-pro')
+    def __init__(self, temperature=0, model_name: str = "gemini-pro"):
+        # Create a genai Client
+        api_key = os.getenv("Google_API_KEY")
+        self.client = genai.Client(api_key=api_key) if api_key else genai.Client()
+        self.model_name = model_name
 
     # @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(5))
     def prompt(self, processed_input):
-        for i in range(10):
+        contents = processed_input[0]["content"]
+        response = None
+        for _ in range(10):
             try:
-                response = self.model.generate_content(
-                    processed_input[0]['content'],
-                    # generation_config=genai.types.GenerationConfig(
-                    #     candidate_count=1,
-                    #     max_output_tokens=2048,
-                    #     temperature=0
-                    # )
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=contents,
                 )
                 return response.text, 0, 0
             except Exception:
                 time.sleep(2)
-        
-        return response.text, 0, 0
 
+        if response is not None:
+            return response.text, 0, 0
