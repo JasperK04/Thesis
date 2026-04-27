@@ -2,13 +2,8 @@
 # Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE SECOND.
 
 import argparse
+import os
 from datetime import datetime
-
-from constants.paths import *  # noqa: F403
-from datasets.DatasetFactory import DatasetFactory
-from models.ModelFactory import ModelFactory
-from promptings.PromptingFactory import PromptingFactory
-from results.Results import Results
 
 parser = argparse.ArgumentParser()
 
@@ -28,8 +23,8 @@ parser.add_argument(
 parser.add_argument(
     "--strategy",
     type=str,
-    default="PACECoding",
-    choices=["Direct", "CoT", "SelfPlanning", "Analogical", "MapCoder", "PACECoding"],
+    default="PACEcoding",
+    choices=["Direct", "CoT", "SelfPlanning", "Analogical", "MapCoder", "PACEcoding"],
 )
 parser.add_argument(
     "--model",
@@ -61,8 +56,26 @@ parser.add_argument(
         "Rust",
     ],
 )
+parser.add_argument(
+    "--local",
+    "-l",
+    action="store_true",
+    help="Run code execution locally via subprocess instead of posting to an executor server",
+)
 
 args = parser.parse_args()
+
+# Respect the local execution flag as an environment variable before importing
+if args.local:
+    os.environ["EXECUTOR_LOCAL"] = "1"
+
+# modules that may instantiate APICommunication at import time.
+# Must be imported after setting the environment variable.
+from constants.paths import *  # noqa: F403,E402
+from datasets.DatasetFactory import DatasetFactory  # noqa: E402
+from models.ModelFactory import ModelFactory  # noqa: E402
+from promptings.PromptingFactory import PromptingFactory  # noqa: E402
+from results.Results import Results  # noqa: E402
 
 DATASET = args.dataset
 STRATEGY = args.strategy

@@ -26,6 +26,11 @@ class Results:
         self.save_results()
 
     def save_results(self):
+        # Ensure parent directory exists before writing results
+        dirpath = os.path.dirname(self.result_path)
+        if dirpath and not os.path.exists(dirpath):
+            os.makedirs(dirpath, exist_ok=True)
+
         write_jsonl(self.result_path, self.results)
 
     def load_results(self):
