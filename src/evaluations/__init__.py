@@ -1,10 +1,9 @@
-from evaluate import (
+from .evaluate import (
     contest_evaluate,
     contest_evaluate_public_tests,
     xcode_evaluate,
     xcode_execute_internal_test,
 )
-
 from .func_evaluate import (
     evaluate_functional_correctness,
     evaluate_functional_correctness2,
