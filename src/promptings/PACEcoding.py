@@ -48,6 +48,9 @@ class PACEcoding(BaseStrategy):
         if "```" in response:
             response = response.replace("```", "")
 
+        # Try parsing as-is, then wrapped in a root. If that fails, sanitize
+        # common problematic characters (stray ampersands and illegal XML
+        # control characters) and try again.
         try:
             root = ET.fromstring(response)
         except Exception as e:
@@ -56,7 +59,17 @@ class PACEcoding(BaseStrategy):
                 root = ET.fromstring("<root>\n" + response + "\n</root>")
             except Exception as e:
                 print(f"Error creating XML root: {e}")
-                root = ET.fromstring("<root>\n" + response)
+                # Sanitize stray ampersands that are not part of an entity
+                sanitized = re.sub(
+                    r"&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)", "&amp;", response
+                )
+                # Remove illegal XML control characters
+                sanitized = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", "", sanitized)
+                try:
+                    root = ET.fromstring("<root>\n" + sanitized + "\n</root>")
+                except Exception as e:
+                    print(f"Sanitized parse failed: {e}")
+                    raise
 
         result = self.xml_to_dict(root)
 
