@@ -12,6 +12,7 @@ dependencies = [
     "google-genai>=1.73.1",
     "huggingface>=0.0.1",
     "jsonlines>=4.0.0",
+    "lxml>=6.1.0",
     "numpy>=2.4.4",
     "openai>=2.32.0",
     "pandas>=3.0.2",

@@ -1,6 +1,7 @@
 import re
-import xml.etree.ElementTree as ET
 from typing import Any
+
+from lxml import etree
 
 from datasets import APPSDataset
 
@@ -43,33 +44,42 @@ class PACEcoding(BaseStrategy):
         return result
 
     def parse_xml(self, response: str) -> dict:
-        if "```xml" in response:
-            response = response.replace("```xml", "")
-        if "```" in response:
-            response = response.replace("```", "")
+        def clean_input(text: str) -> str:
+            text = text.strip()
 
-        # Try parsing as-is, then wrapped in a root. If that fails, sanitize
-        # common problematic characters (stray ampersands and illegal XML
-        # control characters) and try again.
-        try:
-            root = ET.fromstring(response)
-        except Exception as e:
-            print(f"Error parsing XML: {e}")
+            text = re.sub(r"```xml\s*", "", text)
+            text = re.sub(r"```", "", text)
+
+            text = re.sub(r"&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)", "&amp;", text)
+
+            text = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", "", text)
+
+            text = re.sub(r"<\?xml.*?\?>", "", text)
+
+            return text.strip()
+
+        def ensure_root(text: str) -> bytes:
             try:
-                root = ET.fromstring("<root>\n" + response + "\n</root>")
-            except Exception as e:
-                print(f"Error creating XML root: {e}")
-                # Sanitize stray ampersands that are not part of an entity
-                sanitized = re.sub(
-                    r"&(?!amp;|lt;|gt;|quot;|apos;|#\d+;)", "&amp;", response
-                )
-                # Remove illegal XML control characters
-                sanitized = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", "", sanitized)
-                try:
-                    root = ET.fromstring("<root>\n" + sanitized + "\n</root>")
-                except Exception as e:
-                    print(f"Sanitized parse failed: {e}")
-                    raise
+                etree.fromstring(text.encode("utf-8"))
+                return text.encode("utf-8")
+            except Exception:
+                return f"<root>{text}</root>".encode("utf-8")
+
+        cleaned = clean_input(response)
+        wrapped = ensure_root(cleaned)
+
+        parser = etree.XMLParser(
+            recover=True,
+            remove_comments=True,
+            remove_pis=True,
+            strip_cdata=False,
+            resolve_entities=False,
+        )
+
+        try:
+            root = etree.fromstring(wrapped, parser=parser)
+        except Exception:
+            return {"error": "Invalid XML", "raw": response}
 
         result = self.xml_to_dict(root)
 
@@ -203,6 +213,10 @@ Your response must follow the following xml format:
         print(response, flush=True)
 
         response = self.parse_xml(response)
+        if "error" in response:
+            print(f"Error parsing XML: {response['error']}")
+            print(f"Raw response: {response['raw']}")
+            return str(response), pr_tok, com_tok
 
         problems = response.get("problem", [])
         if not isinstance(problems, list):
@@ -326,6 +340,11 @@ Important:
             verification_res = self.replace_tag(verification_res, "analysis")
             verification_res = self.replace_tag(verification_res, "confidence")
             verification_res = self.parse_xml(verification_res)
+
+            if "error" in verification_res:
+                print(f"Error parsing XML: {verification_res['error']}")
+                print(f"Raw response: {verification_res['raw']}")
+                continue
 
             confidence_score = 0
             try:
