@@ -78,9 +78,10 @@ class QwenLocal(QwenBaseModel):
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
+            device_map="auto",
             trust_remote_code=trust_remote_code,
             dtype=torch.float16,
-        ).to(self.device)
+        )
 
     def prompt(self, processed_input: list[dict]):
         """Generate a reply for the assistant and return only the assistant text.
