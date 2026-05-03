@@ -363,6 +363,9 @@ Important:
 
         plannings.sort(key=lambda x: x[1], reverse=True)
 
+        if not plannings:
+            return "no plans generated", pr_tok, com_tok
+
         if isinstance(self.data, APPSDataset):
             std_input_prompt = "## Note: Strictly follow the input and output format. Take input from stdin and output to stdout. If writing a function, after the function definition, take input using `input()`, call the function, and print the result. Avoid extra print statements."
         else:
