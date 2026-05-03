@@ -7,10 +7,11 @@ print("Device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else
 if not torch.cuda.is_available():
     raise SystemError("GPU is not available")
 
-model_name = "Qwen/Qwen3.5-9B"
+MODEL_NAME = "Qwen/Qwen3.5-9B"
+MAX_LENGTH = 4096
 
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name, dtype=torch.float16).to("cuda")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, dtype=torch.float16).to("cuda")
 
 
 def run_prompt(prompt, description):
@@ -27,7 +28,11 @@ def run_prompt(prompt, description):
     inputs = tokenizer(text, return_tensors="pt").to("cuda")
 
     outputs = model.generate(
-        **inputs, do_sample=True, temperature=0.7, eos_token_id=tokenizer.eos_token_id
+        **inputs,
+        max_new_tokens=MAX_LENGTH,
+        do_sample=True,
+        temperature=0.7,
+        eos_token_id=tokenizer.eos_token_id,
     )
 
     result = tokenizer.decode(outputs[0], skip_special_tokens=True)
@@ -78,7 +83,11 @@ text = tokenizer.apply_chat_template(
 inputs = tokenizer(text, return_tensors="pt").to("cuda")
 
 outputs = model.generate(
-    **inputs, do_sample=True, temperature=0.7, eos_token_id=tokenizer.eos_token_id
+    **inputs,
+    max_new_tokens=MAX_LENGTH,
+    do_sample=True,
+    temperature=0.7,
+    eos_token_id=tokenizer.eos_token_id,
 )
 
 print("\n" + "=" * 60)
