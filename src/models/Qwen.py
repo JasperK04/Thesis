@@ -5,10 +5,15 @@ import dotenv
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-
 from .Base import BaseModel
 
 dotenv.load_dotenv()
+
+if __name__ == "__main__":
+    print("CUDA available:", torch.cuda.is_available())
+    print(
+        "Device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
+    )
 
 
 class QwenBaseModel(BaseModel):
@@ -50,32 +55,32 @@ class QwenLocal(QwenBaseModel):
         self,
         model_name: str | None = None,
         device: str | None = None,
-        max_new_tokens: int = 512,
+        max_new_tokens: int = 4096,
         trust_remote_code: bool = True,
         **kwargs,
     ):
-        model_name = model_name or os.getenv(
-            "QWEN_LOCAL_MODEL", "Qwen/Qwen2.5-7B-Instruct"
-        )
+        if not torch.cuda.is_available():
+            raise SystemError("GPU is not available")
+        if not model_name:
+            raise ValueError("model_name must be set")
         super().__init__(model_name=model_name, **kwargs)
-        self.model_name = model_name
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        expanded_model_name = os.path.expanduser(model_name)
+        if os.path.exists(expanded_model_name):
+            self.model_name = expanded_model_name
+        else:
+            self.model_name = model_name
+        self.device = device or "cuda"
         self.max_new_tokens = max_new_tokens
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_name, trust_remote_code=trust_remote_code
         )
 
-        if "cuda" in self.device:
-            # Let HF auto-place model across available GPUs
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_name, trust_remote_code=trust_remote_code, device_map="auto"
-            )
-        else:
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_name, trust_remote_code=trust_remote_code
-            )
-            self.model.to(torch.device(self.device))
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.model_name,
+            trust_remote_code=trust_remote_code,
+            dtype=torch.float16,
+        ).to(self.device)
 
     def prompt(self, processed_input: list[dict]):
         """Generate a reply for the assistant and return only the assistant text.
@@ -87,63 +92,41 @@ class QwenLocal(QwenBaseModel):
             str: assistant generated text (no prompt included)
         """
         # Build the chat-style prompt using the tokenizer helper
-        prompt = self.tokenizer.apply_chat_template(processed_input)
+        prompt = self.tokenizer.apply_chat_template(
+            processed_input, tokenize=False, add_generation_prompt=True
+        )
 
-        # Tokenize into tensors
-        inputs = self.tokenizer(prompt, return_tensors="pt")
+        # Tokenize into tensors and move to CUDA
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
-        # Move tensors to model device
-        model_device = next(self.model.parameters()).device
-        input_ids = inputs["input_ids"].to(model_device)
-        attention_mask = inputs.get("attention_mask")
-        if attention_mask is not None:
-            attention_mask = attention_mask.to(model_device)
+        outputs = self.model.generate(
+            **inputs,
+            max_new_tokens=int(self.max_new_tokens),
+            do_sample=True,
+            temperature=self.model_params.get("temperature", 0.32),
+            eos_token_id=self.tokenizer.eos_token_id,
+        )
 
-        # Generation kwargs
-        gen_kwargs = {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "max_new_tokens": int(self.max_new_tokens),
-            "do_sample": False,
-            "temperature": float(self.model_params.get("temperature", 0.0)),
-            "top_p": float(self.model_params.get("top_p", 0.95)),
-            "eos_token_id": self.tokenizer.eos_token_id,
-            "pad_token_id": self.tokenizer.pad_token_id or self.tokenizer.eos_token_id,
-        }
-
-        # Remove None values to avoid HF errors
-        gen_kwargs = {k: v for k, v in gen_kwargs.items() if v is not None}
-
-        outputs = self.model.generate(**gen_kwargs)
-
-        # outputs is (batch, seq_len); take first sequence
-        output_ids = outputs[0]
-
-        # Extract generated tokens (exclude the input prompt tokens)
-        gen_tokens = output_ids[input_ids.shape[-1] :]
-
-        assistant_text = self.tokenizer.decode(gen_tokens, skip_special_tokens=True)
-
-        return assistant_text
+        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 
 class Qwen36(QwenLocal):
-    def __init__(self, model_name: str | None = None, **kwargs):
-        model_name = model_name or os.getenv("QWEN36_MODEL", "Qwen/Qwen36-Instruct")
+    def __init__(self, **kwargs):
+        model_name = os.getenv("QWEN36_MODEL", "Qwen/Qwen36-Instruct")
         super().__init__(model_name=model_name, **kwargs)
 
 
 class Qwen36_Coder(QwenLocal):
-    def __init__(self, model_name: str | None = None, **kwargs):
-        model_name = model_name or os.getenv(
-            "QWEN36_CODER_MODEL", "Qwen/Qwen36-Coder-Instruct"
-        )
+    def __init__(self, **kwargs):
+        model_name = os.getenv("QWEN36_CODER_MODEL", "Qwen/Qwen36-Coder-Instruct")
         super().__init__(model_name=model_name, **kwargs)
 
 
 class Qwen36_FineTuned(QwenLocal):
-    def __init__(self, model_name: str | None = None, **kwargs):
-        model_name = model_name or os.getenv(
-            "QWEN36_FINETUNED_MODEL", "Qwen/Qwen36-Finetuned-Instruct"
-        )
+    def __init__(self, **kwargs):
+        model_name = os.getenv("QWEN36_FINETUNED_MODEL")
+        if not model_name:
+            raise ValueError(
+                "QWEN36_FINETUNED_MODEL must be set to a local model path"
+            )
         super().__init__(model_name=model_name, **kwargs)
