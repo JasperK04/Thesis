@@ -10,9 +10,7 @@ if not torch.cuda.is_available():
 model_name = "Qwen/Qwen3.5-9B"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16).to(
-    "cuda"
-)
+model = AutoModelForCausalLM.from_pretrained(model_name, dtype=torch.float16).to("cuda")
 
 
 def run_prompt(prompt, description):
@@ -29,7 +27,7 @@ def run_prompt(prompt, description):
     inputs = tokenizer(text, return_tensors="pt").to("cuda")
 
     outputs = model.generate(
-        **inputs, max_new_tokens=200, do_sample=True, temperature=0.7
+        **inputs, do_sample=True, temperature=0.7, eos_token_id=tokenizer.eos_token_id
     )
 
     result = tokenizer.decode(outputs[0], skip_special_tokens=True)
@@ -79,7 +77,9 @@ text = tokenizer.apply_chat_template(
 
 inputs = tokenizer(text, return_tensors="pt").to("cuda")
 
-outputs = model.generate(**inputs, max_new_tokens=200, do_sample=True, temperature=0.7)
+outputs = model.generate(
+    **inputs, do_sample=True, temperature=0.7, eos_token_id=tokenizer.eos_token_id
+)
 
 print("\n" + "=" * 60)
 print("TEST 5: With system prompt")
