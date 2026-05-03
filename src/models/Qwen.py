@@ -55,7 +55,7 @@ class QwenLocal(QwenBaseModel):
         self,
         model_name: str | None = None,
         device: str | None = None,
-        max_new_tokens: int = 4096,
+        max_new_tokens: int = 4096,  # 8192
         trust_remote_code: bool = True,
         **kwargs,
     ):
@@ -126,7 +126,5 @@ class Qwen36_FineTuned(QwenLocal):
     def __init__(self, **kwargs):
         model_name = os.getenv("QWEN36_FINETUNED_MODEL")
         if not model_name:
-            raise ValueError(
-                "QWEN36_FINETUNED_MODEL must be set to a local model path"
-            )
+            raise ValueError("QWEN36_FINETUNED_MODEL must be set to a local model path")
         super().__init__(model_name=model_name, **kwargs)
