@@ -112,19 +112,18 @@ class QwenLocal(QwenBaseModel):
 
 class Qwen36(QwenLocal):
     def __init__(self, **kwargs):
-        model_name = os.getenv("QWEN36_MODEL", "Qwen/Qwen36-Instruct")
+        model_name = "Qwen/Qwen3.6-27B"  # 27B params
         super().__init__(model_name=model_name, **kwargs)
 
 
-class Qwen36_Coder(QwenLocal):
+class Qwen3_Coder(QwenLocal):
     def __init__(self, **kwargs):
-        model_name = os.getenv("QWEN36_CODER_MODEL", "Qwen/Qwen36-Coder-Instruct")
+        model_name = "Qwen/Qwen3-Coder-30B-A3B-Instruct"  # 31B params
         super().__init__(model_name=model_name, **kwargs)
 
 
 class Qwen36_FineTuned(QwenLocal):
     def __init__(self, **kwargs):
-        model_name = os.getenv("QWEN36_FINETUNED_MODEL")
-        if not model_name:
-            raise ValueError("QWEN36_FINETUNED_MODEL must be set to a local model path")
+        raise NotImplementedError("Qwen3.6_FineTuned is not implemented yet")
+        model_name = "jasperK04/Qwen3.6-Finetuned-AoC"  # 27B params
         super().__init__(model_name=model_name, **kwargs)
