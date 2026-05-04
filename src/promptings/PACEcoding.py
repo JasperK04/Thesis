@@ -1,7 +1,8 @@
 import re
+import sys
 from typing import Any
 
-from lxml import etree
+from lxml import etree  # type: ignore
 
 from datasets import APPSDataset
 
@@ -19,6 +20,15 @@ mapping = {
     8: "eight (08)",
     9: "nine (09)",
 }
+
+COLOR_RESET = "\033[0m"
+COLOR_BLUE = "\033[34m"
+COLOR_RED = "\033[31m"
+COLOR_YELLOW = "\033[33m"
+
+
+def color_text(text: str, color: str) -> str:
+    return f"{color}{text}{COLOR_RESET}"
 
 
 class PACEcoding(BaseStrategy):
@@ -194,8 +204,8 @@ Your response must follow the following xml format:
             },
         ]
 
-        print("\n\n________________________")
-        print("Input for knowledge base and exemplars: ")
+        print(color_text("\n\n________________________", COLOR_BLUE))
+        print(color_text("Input for knowledge base and exemplars:", COLOR_BLUE))
         print(input_kb_exemplars[0]["content"], flush=True)
 
         response, pr_tok, com_tok = self.gpt_chat(processed_input=input_kb_exemplars)
@@ -208,14 +218,22 @@ Your response must follow the following xml format:
         response = self.replace_tag(response, "techniques")
         response = self.replace_tag(response, "learned_techniques")
 
-        print("\n\n________________________")
-        print("Response from knowledge base and exemplars: ")
+        print(color_text("\n\n________________________", COLOR_BLUE))
+        print(color_text("Response from knowledge base and exemplars:", COLOR_BLUE))
         print(response, flush=True)
 
         response = self.parse_xml(response)
         if "error" in response:
-            print(f"Error parsing XML: {response['error']}")
-            print(f"Raw response: {response['raw']}")
+            print(
+                color_text(f"Error parsing XML: {response['error']}", COLOR_RED),
+                file=sys.stderr,
+                flush=True,
+            )
+            print(
+                color_text(f"Raw response: {response['raw']}", COLOR_RED),
+                file=sys.stderr,
+                flush=True,
+            )
             return str(response), pr_tok, com_tok
 
         problems = response.get("problem", [])
@@ -284,8 +302,13 @@ Important:
                 }
             ]
 
-            print("\n\n________________________")
-            print(f"Input for our problem planning using example: {example_no}: ")
+            print(color_text("\n\n________________________", COLOR_BLUE))
+            print(
+                color_text(
+                    f"Input for our problem planning using example: {example_no}:",
+                    COLOR_BLUE,
+                )
+            )
             print(input_for_problem_planning[0]["content"], flush=True)
 
             planning, pr_tok_1, com_tok_1 = self.gpt_chat(input_for_problem_planning)
@@ -293,8 +316,8 @@ Important:
             pr_tok += pr_tok_1
             com_tok += com_tok_1
 
-            print("\n\n________________________")
-            print("Response from our problem planning: ")
+            print(color_text("\n\n________________________", COLOR_BLUE))
+            print(color_text("Response from our problem planning:", COLOR_BLUE))
             print(planning, flush=True)
 
             input_for_planning_verification = [
@@ -327,7 +350,7 @@ Important:
                 }
             ]
 
-            print("Input for planning verification: ")
+            print(color_text("Input for planning verification:", COLOR_BLUE))
             print(input_for_planning_verification[0]["content"], flush=True)
 
             verification_res, pr_tok_1, com_tok_1 = self.gpt_chat(
@@ -342,8 +365,18 @@ Important:
             verification_res = self.parse_xml(verification_res)
 
             if "error" in verification_res:
-                print(f"Error parsing XML: {verification_res['error']}")
-                print(f"Raw response: {verification_res['raw']}")
+                print(
+                    color_text(
+                        f"Error parsing XML: {verification_res['error']}", COLOR_RED
+                    ),
+                    file=sys.stderr,
+                    flush=True,
+                )
+                print(
+                    color_text(f"Raw response: {verification_res['raw']}", COLOR_RED),
+                    file=sys.stderr,
+                    flush=True,
+                )
                 continue
 
             confidence_score = 0
@@ -352,10 +385,14 @@ Important:
                 confidence_score = int(re.search(r"\d+", confidence_text).group())  # type: ignore
                 confidence_score = max(0, min(100, confidence_score))
             except Exception as e:
-                print(f"Error parsing confidence score: {e}")
+                print(
+                    color_text(f"Error parsing confidence score: {e}", COLOR_RED),
+                    file=sys.stderr,
+                    flush=True,
+                )
                 confidence_score = 50
 
-            print("Response from planning verification: ")
+            print(color_text("Response from planning verification:", COLOR_BLUE))
             print(f"Analysis: {verification_res.get('analysis', '')}")
             print(f"Confidence: {confidence_score}")
 
@@ -364,6 +401,11 @@ Important:
         plannings.sort(key=lambda x: x[1], reverse=True)
 
         if not plannings:
+            print(
+                color_text("No valid plannings generated.", COLOR_RED),
+                file=sys.stderr,
+                flush=True,
+            )
             return "no plans generated", pr_tok, com_tok
 
         if isinstance(self.data, APPSDataset):
@@ -405,8 +447,8 @@ Generate only the {self.language} code. Do not include any explanations.
                 }
             ]
 
-            print("\n\n________________________")
-            print("Input for final code generation: ")
+            print(color_text("\n\n________________________", COLOR_BLUE))
+            print(color_text("Input for final code generation:", COLOR_BLUE))
             print(input_for_final_code_generation[0]["content"], flush=True)
 
             code, pr_tok_1, com_tok_1 = self.gpt_chat(input_for_final_code_generation)
@@ -415,9 +457,9 @@ Generate only the {self.language} code. Do not include any explanations.
             pr_tok += pr_tok_1
             com_tok += com_tok_1
 
-            print("\n\n________________________")
-            print("Response from final code generation: ")
-            print(code, flush=True)
+            print(color_text("\n\n________________________", COLOR_BLUE))
+            print(color_text("Response from final code generation:", COLOR_BLUE))
+            print(color_text(code, COLOR_YELLOW), flush=True)
 
             passed = False
 
@@ -429,7 +471,9 @@ Generate only the {self.language} code. Do not include any explanations.
                 if passed:
                     break
 
-                print(f"Input for improving code generation: {i}")
+                print(
+                    color_text(f"Input for improving code generation: {i}", COLOR_BLUE)
+                )
                 input_for_improving_code = [
                     {
                         "role": "user",
@@ -437,8 +481,8 @@ Generate only the {self.language} code. Do not include any explanations.
                     }
                 ]
 
-                print("\n\n________________________")
-                print("Input for improving code generation: ")
+                print(color_text("\n\n________________________", COLOR_BLUE))
+                print(color_text("Input for improving code generation:", COLOR_BLUE))
                 print(input_for_improving_code[0]["content"], flush=True)
 
                 response, pr_tok_1, com_tok_1 = self.gpt_chat(input_for_improving_code)
@@ -449,13 +493,17 @@ Generate only the {self.language} code. Do not include any explanations.
                 pr_tok += pr_tok_1
                 com_tok += com_tok_1
 
-                print("\n\n________________________")
-                print("Response from improving code generation: ")
+                print(color_text("\n\n________________________", COLOR_BLUE))
+                print(
+                    color_text("Response from improving code generation:", COLOR_BLUE)
+                )
                 print(response, flush=True)
 
             # got a code that passed all sample test cases
             if passed:
                 break
 
-        print("________________________\n\n", flush=True)
+        print(color_text("________________________\n\n", COLOR_BLUE), flush=True)
+        if not code or code.strip() == "":
+            code = "no code generated"
         return code, pr_tok, com_tok

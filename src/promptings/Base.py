@@ -25,7 +25,7 @@ class BaseStrategy(object):
         self.language = language
         self.verbose = verbose
 
-    def gpt_chat(self, processed_input: List[dict]) -> (str, int, int):
+    def gpt_chat(self, processed_input: List[dict]) -> tuple[str, int, int]:
         return self.model.prompt(processed_input=processed_input)
 
     def run_single_pass(self, item: dict):
@@ -126,4 +126,4 @@ class BaseStrategy(object):
                     f"completed {i + 1}/{num_items}, Solved: {self.results[i]['is_solved']}, number of success = {num_success}/{i + 1}, acc = {round(num_success / (i + 1) * 100, 2)}"
                 )
 
-            # break
+            break

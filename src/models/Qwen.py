@@ -55,7 +55,7 @@ class QwenLocal(QwenBaseModel):
         self,
         model_name: str | None = None,
         device: str | None = None,
-        max_new_tokens: int = 4096,  # 8192
+        max_new_tokens: int = 8192,
         trust_remote_code: bool = True,
         **kwargs,
     ):
