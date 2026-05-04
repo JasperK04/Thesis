@@ -1,6 +1,6 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
 
-from datasets import (
+from challenge_datasets import (
     APPSDataset,
     CodeContestDataset,
     HumanDataset,

@@ -1,10 +1,10 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-from datasets.AoCDataset import AoCDataset
-from datasets.APPSDataset import APPSDataset
-from datasets.CodeContestDataset import CodeContestDataset
-from datasets.HumanEvalDataset import HumanDataset
-from datasets.MBPPDataset import MBPPDataset
-from datasets.XCodeDataset import XCodeDataset
+from challenge_datasets.AoCDataset import AoCDataset
+from challenge_datasets.APPSDataset import APPSDataset
+from challenge_datasets.CodeContestDataset import CodeContestDataset
+from challenge_datasets.HumanEvalDataset import HumanDataset
+from challenge_datasets.MBPPDataset import MBPPDataset
+from challenge_datasets.XCodeDataset import XCodeDataset
 
 
 class DatasetFactory:

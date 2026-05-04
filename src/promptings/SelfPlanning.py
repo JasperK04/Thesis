@@ -1,6 +1,11 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
 
-from datasets import APPSDataset, CodeContestDataset, HumanDataset, XCodeDataset
+from challenge_datasets import (
+    APPSDataset,
+    CodeContestDataset,
+    HumanDataset,
+    XCodeDataset,
+)
 
 from .Base import BaseStrategy
 

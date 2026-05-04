@@ -71,8 +71,8 @@ if args.local:
 
 # modules that may instantiate APICommunication at import time.
 # Must be imported after setting the environment variable.
+from challenge_datasets.DatasetFactory import DatasetFactory  # noqa: E402
 from constants.paths import *  # noqa: F403,E402
-from datasets.DatasetFactory import DatasetFactory  # noqa: E402
 from models.ModelFactory import ModelFactory  # noqa: E402
 from promptings.PromptingFactory import PromptingFactory  # noqa: E402
 from results.Results import Results  # noqa: E402

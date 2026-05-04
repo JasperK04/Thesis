@@ -2,7 +2,7 @@
 import copy
 from typing import List
 
-from datasets import Dataset
+from challenge_datasets import Dataset
 from models.Base import BaseModel
 from results import Results
 from utils.parse import parse_response

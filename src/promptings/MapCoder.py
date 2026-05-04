@@ -3,7 +3,7 @@ import re
 import xml.etree.ElementTree as ET
 from typing import Any
 
-from datasets import APPSDataset, CodeContestDataset, XCodeDataset
+from challenge_datasets import APPSDataset, CodeContestDataset, XCodeDataset
 
 from .Base import BaseStrategy
 

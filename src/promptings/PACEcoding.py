@@ -4,7 +4,7 @@ from typing import Any
 
 from lxml import etree  # type: ignore
 
-from datasets import APPSDataset
+from challenge_datasets import APPSDataset
 
 # import tiktoken
 from .Base import BaseStrategy
