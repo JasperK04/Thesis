@@ -112,8 +112,11 @@ class QwenLocal(QwenBaseModel):
         prompt_tokens = int(inputs["input_ids"].shape[-1])
         completion_tokens = int(max(output_ids.shape[-1] - prompt_tokens, 0))
 
+        # Return only the generated tokens to avoid echoing the prompt.
+        generated_ids = output_ids[prompt_tokens:]
+
         return (
-            self.tokenizer.decode(output_ids, skip_special_tokens=True),
+            self.tokenizer.decode(generated_ids, skip_special_tokens=True),
             prompt_tokens,
             completion_tokens,
         )
