@@ -104,6 +104,11 @@ class PACEcoding(BaseStrategy):
                         "planning": "",
                         "techniques": "",
                     }
+        else:
+            print(
+                color_text("Warning: No <problem> tag found in XML.", COLOR_RED),
+                file=sys.stderr,
+            )
 
         return result
 
@@ -237,6 +242,11 @@ Your response must follow the following xml format:
             return str(response), pr_tok, com_tok
 
         problems = response.get("problem", [])
+        if not problems:
+            print(
+                color_text("Warning: No <problem> tag found in XML.", COLOR_RED),
+                file=sys.stderr,
+            )
         if not isinstance(problems, list):
             problems = [problems]
 
