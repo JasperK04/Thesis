@@ -1,5 +1,6 @@
 # Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE SECOND.
 import os
+import re
 
 import dotenv
 import torch
@@ -113,13 +114,13 @@ class QwenLocal(QwenBaseModel):
         completion_tokens = int(max(output_ids.shape[-1] - prompt_tokens, 0))
 
         # Return only the generated tokens to avoid echoing the prompt.
-        generated_ids = output_ids[prompt_tokens:]
+            generated_ids = output_ids[prompt_tokens:]
+            decoded = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
 
-        return (
-            self.tokenizer.decode(generated_ids, skip_special_tokens=True),
-            prompt_tokens,
-            completion_tokens,
-        )
+            # Remove any <think>...</think> blocks from the returned text.
+            decoded = re.sub(r"<think>.*?</think>", "", decoded, flags=re.DOTALL)
+
+            return (decoded, prompt_tokens, completion_tokens)
 
 
 class Qwen36(QwenLocal):
