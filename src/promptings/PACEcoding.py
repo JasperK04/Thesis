@@ -53,7 +53,7 @@ class PACEcoding(BaseStrategy):
                 result[child.tag] = child.text
         return result
 
-    def parse_xml(self, response: str) -> dict:
+    def parse_xml(self, response: str, require_problem: bool = True) -> dict:
         def clean_input(text: str) -> str:
             text = text.strip()
 
@@ -105,10 +105,11 @@ class PACEcoding(BaseStrategy):
                         "techniques": "",
                     }
         else:
-            print(
-                color_text("Warning: No <problem> tag found in XML.", COLOR_RED),
-                file=sys.stderr,
-            )
+            if require_problem:
+                print(
+                    color_text("Warning: No <problem> tag found in XML.", COLOR_RED),
+                    file=sys.stderr,
+                )
 
         return result
 
@@ -372,7 +373,7 @@ Important:
 
             verification_res = self.replace_tag(verification_res, "analysis")
             verification_res = self.replace_tag(verification_res, "confidence")
-            verification_res = self.parse_xml(verification_res)
+            verification_res = self.parse_xml(verification_res, require_problem=False)
 
             if "error" in verification_res:
                 print(

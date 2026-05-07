@@ -1,9 +1,11 @@
 # Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE SECOND.
 import os
 import re
+import sys
 
 import dotenv
 import torch
+from lxml import etree  # type: ignore
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from .Base import BaseModel
@@ -84,6 +86,43 @@ class QwenLocal(QwenBaseModel):
             dtype=torch.float16,
         )
 
+    @staticmethod
+    def remove_think_blocks(text: str) -> str:
+        open_count = len(re.findall(r"<think>", text))
+        close_count = len(re.findall(r"</think>", text))
+
+        if open_count != close_count:
+            print(
+                f"Warning: Unmatched <think> tags detected. Open: {open_count}, Close: {close_count}",
+                file=sys.stderr,
+            )
+            if open_count > close_count:
+                text += "</think>" * (open_count - close_count)
+            else:
+                text = ("<think>" * (close_count - open_count)) + text
+
+        wrapped = f"<root>{text}</root>"
+
+        try:
+            root = etree.fromstring(wrapped)
+
+            for think in root.xpath(".//think"):
+                think.getparent().remove(think)
+
+            cleaned = "".join(root.itertext()).strip()
+
+        except etree.XMLSyntaxError:
+            cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+
+            cleaned = re.sub(r"<think>.*$", "", cleaned, flags=re.DOTALL)
+
+            if "</think>" in cleaned:
+                cleaned = cleaned.split("</think>")[-1]
+
+            cleaned = cleaned.strip()
+
+        return cleaned
+
     def prompt(self, processed_input: list[dict]):
         """Generate a reply for the assistant and return only the assistant text.
 
@@ -118,7 +157,7 @@ class QwenLocal(QwenBaseModel):
         decoded = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
 
         # Remove any <think>...</think> blocks from the returned text.
-        decoded = re.sub(r"<think>.*?<\/think>", "", decoded, flags=re.DOTALL)
+        decoded = self.remove_think_blocks(decoded)
 
         # If a stray closing </think> remains, discard everything before it.
         if "</think>" in decoded and "<think>" not in decoded:
