@@ -157,14 +157,14 @@ class QwenLocal(QwenBaseModel):
         decoded = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
 
         # Remove any <think>...</think> blocks from the returned text.
-        decoded = self.remove_think_blocks(decoded)
+        # decoded = self.remove_think_blocks(decoded)
 
         # If a stray closing </think> remains, discard everything before it.
-        if "</think>" in decoded and "<think>" not in decoded:
-            print(
-                "Warning: Found stray </think> tag in output. Discarding preceding text."
-            )
-            decoded = decoded.split("</think>")[-1]
+        # if "</think>" in decoded and "<think>" not in decoded:
+        #     print(
+        #         "Warning: Found stray </think> tag in output. Discarding preceding text."
+        #     )
+        #     decoded = decoded.split("</think>")[-1]
 
         return (decoded, prompt_tokens, completion_tokens)
 
