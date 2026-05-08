@@ -92,10 +92,10 @@ class QwenLocal(QwenBaseModel):
         close_count = len(re.findall(r"</think>", text))
 
         if open_count != close_count:
-            print(
-                f"Warning: Unmatched <think> tags detected. Open: {open_count}, Close: {close_count}",
-                file=sys.stderr,
-            )
+            # print(
+            #     f"Warning: Unmatched <think> tags detected. Open: {open_count}, Close: {close_count}",
+            #     file=sys.stderr,
+            # ) # apparently this is normal in Qwen outputs
             if open_count > close_count:
                 text += "</think>" * (open_count - close_count)
             else:
@@ -117,7 +117,7 @@ class QwenLocal(QwenBaseModel):
             cleaned = re.sub(r"<think>.*$", "", cleaned, flags=re.DOTALL)
 
             if "</think>" in cleaned:
-                cleaned = cleaned.split("</think>")[-1]
+                thinking, cleaned = cleaned.split("</think>", 1)
 
             cleaned = cleaned.strip()
 
@@ -157,14 +157,7 @@ class QwenLocal(QwenBaseModel):
         decoded = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
 
         # Remove any <think>...</think> blocks from the returned text.
-        # decoded = self.remove_think_blocks(decoded)
-
-        # If a stray closing </think> remains, discard everything before it.
-        # if "</think>" in decoded and "<think>" not in decoded:
-        #     print(
-        #         "Warning: Found stray </think> tag in output. Discarding preceding text."
-        #     )
-        #     decoded = decoded.split("</think>")[-1]
+        decoded = self.remove_think_blocks(decoded)
 
         return (decoded, prompt_tokens, completion_tokens)
 
