@@ -162,20 +162,21 @@ class QwenLocal(QwenBaseModel):
         return (decoded, prompt_tokens, completion_tokens)
 
 
-class Qwen36(QwenLocal):
+class Qwen35(QwenLocal):
     def __init__(self, **kwargs):
-        model_name = "Qwen/Qwen3.6-27B"  # 27B params
+        model_name = "Qwen/Qwen3.5-9B"  # 9B params
         super().__init__(model_name=model_name, **kwargs)
 
 
 class Qwen3_Coder(QwenLocal):
     def __init__(self, **kwargs):
-        model_name = "Qwen/Qwen3-Coder-30B-A3B-Instruct"  # 31B params
+        raise NotImplementedError("Qwen3-Coder is much bigger and not tested yet")
+        model_name = "Qwen/Qwen3-Coder-30B-A3B-Instruct"  # 30B params
         super().__init__(model_name=model_name, **kwargs)
 
 
-class Qwen36_FineTuned(QwenLocal):
+class Qwen35_FineTuned(QwenLocal):
     def __init__(self, **kwargs):
-        raise NotImplementedError("Qwen3.6_FineTuned is not implemented yet")
-        model_name = "jasperK04/Qwen3.6-Finetuned-AoC"  # 27B params
+        raise NotImplementedError("Qwen3.5_FineTuned is not implemented yet")
+        model_name = "jasperK04/Qwen3.5-Finetuned-AoC"  # 9B params
         super().__init__(model_name=model_name, **kwargs)
