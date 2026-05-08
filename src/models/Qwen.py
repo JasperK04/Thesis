@@ -1,7 +1,6 @@
 # Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE SECOND.
 import os
 import re
-import sys
 
 import dotenv
 import torch
@@ -142,7 +141,7 @@ class QwenLocal(QwenBaseModel):
         # Tokenize into tensors and move to CUDA
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
-        outputs = self.model.generate(
+        outputs = self.model.generate(  # type: ignore
             **inputs,
             max_new_tokens=int(self.max_new_tokens),
             do_sample=True,
