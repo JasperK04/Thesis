@@ -1,3 +1,4 @@
+import json
 import re
 import sys
 from typing import Any
@@ -92,6 +93,18 @@ class PACEcoding(BaseStrategy):
             return {"error": "Invalid XML", "raw": response}
 
         result = self.xml_to_dict(root)
+
+        print(
+            color_text(
+                f"Parsed XML to dict:\n{json.dumps(result, indent=2)}", COLOR_YELLOW
+            ),
+            flush=True,
+        )
+
+        if "root" in result and "problem" not in result:
+            nested = result.get("root")
+            if isinstance(nested, dict):
+                result = nested
 
         if "problem" in result:
             if not isinstance(result["problem"], list):
