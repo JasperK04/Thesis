@@ -7,7 +7,13 @@ def read_file(path):
 
 
 def format_examples(examples):
-    return [{"input": ex["input"], "output": ex["answer"]} for ex in examples]
+    return [
+        {
+            "input": ex["input"],
+            "output": [int(ex["answer"])] if ex["answer"].isdigit() else [ex["answer"]],
+        }
+        for ex in examples
+    ]
 
 
 def process_day(day_path, year):
@@ -40,7 +46,14 @@ def process_day(day_path, year):
                 "name": title,
                 "description": part1_desc,
                 "sample_io": format_examples(part1.get("examples", [])),
-                "test_list": [{"input": main_input, "output": part1.get("answer", "")}],
+                "test_list": [
+                    {
+                        "input": main_input,
+                        "output": [int(part1.get("answer"))]
+                        if part1.get("answer", "").isdigit()
+                        else [part1.get("answer")],
+                    }
+                ],
             },
         )
     )
@@ -55,7 +68,14 @@ def process_day(day_path, year):
                 "name": title,
                 "description": part1_desc + part2_desc,
                 "sample_io": format_examples(part2.get("examples", [])),
-                "test_list": [{"input": main_input, "output": part2.get("answer", "")}],
+                "test_list": [
+                    {
+                        "input": main_input,
+                        "output": [int(part2.get("answer"))]
+                        if part2.get("answer", "").isdigit()
+                        else [part2.get("answer")],
+                    }
+                ],
             },
         )
     )
