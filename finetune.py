@@ -15,8 +15,14 @@ model_name = "Qwen/Qwen3.6-27B"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 
 model = AutoModelForCausalLM.from_pretrained(
-    model_name, device_map="auto", dtype=torch.bfloat16
+    model_name,
+    device_map="auto",
+    dtype=torch.bfloat16,
+    attn_implementation="eager",
 )
+
+model.config.use_cache = False
+model.gradient_checkpointing_enable()
 
 lora_config = LoraConfig(
     r=16,
@@ -38,7 +44,7 @@ eval_dataset = dataset["test"]
 
 
 def tokenize(example):
-    return tokenizer(example["text"], truncation=True, max_length=8192)
+    return tokenizer(example["text"], truncation=True, max_length=4096)
 
 
 train_dataset = train_dataset.map(tokenize, batched=True, remove_columns=["text"])
@@ -51,6 +57,7 @@ training_args = TrainingArguments(
     per_device_train_batch_size=1,
     gradient_accumulation_steps=16,
     num_train_epochs=10,
+    gradient_checkpointing=True,
     eval_strategy="steps",
     eval_steps=200,
     logging_steps=10,
