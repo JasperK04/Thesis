@@ -10,7 +10,7 @@ from transformers import (
     TrainingArguments,
 )
 
-model_name = "Qwen/Qwen3.6-27B"
+model_name = "Qwen/Qwen3.5-9B"
 
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 
@@ -53,7 +53,7 @@ eval_dataset = eval_dataset.map(tokenize, batched=True, remove_columns=["text"])
 data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
 training_args = TrainingArguments(
-    output_dir="./qwen3.6-finetune",
+    output_dir="./qwen3.5-finetune",
     per_device_train_batch_size=1,
     gradient_accumulation_steps=16,
     num_train_epochs=10,
@@ -83,5 +83,5 @@ trainer = Trainer(
 
 trainer.train()
 
-model.save_pretrained("./JasperK04/Qwen3.6-Finetuned-AoC")
-tokenizer.save_pretrained("./JasperK04/Qwen3.6-Finetuned-AoC")
+model.save_pretrained("./JasperK04/Qwen3.5-Finetuned-AoC")
+tokenizer.save_pretrained("./JasperK04/Qwen3.5-Finetuned-AoC")
