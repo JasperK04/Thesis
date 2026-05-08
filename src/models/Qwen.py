@@ -78,6 +78,8 @@ class QwenLocal(QwenBaseModel):
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_name, trust_remote_code=trust_remote_code
         )
+        if self.tokenizer.pad_token_id is None:
+            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
@@ -146,6 +148,7 @@ class QwenLocal(QwenBaseModel):
             do_sample=True,
             temperature=self.model_params.get("temperature", 0.32),
             eos_token_id=self.tokenizer.eos_token_id,
+            pad_token_id=self.tokenizer.eos_token_id,
         )
 
         output_ids = outputs[0]
