@@ -134,6 +134,9 @@ class QwenLocal(QwenBaseModel):
             str: assistant generated text (no prompt included)
         """
         # Build the chat-style prompt using the tokenizer helper
+        processed_input[0]["content"] += (
+            "\n\nPlease put your thinking process in <think>...</think> blocks, and then give your final answer after that."
+        )
         prompt = self.tokenizer.apply_chat_template(
             processed_input, tokenize=False, add_generation_prompt=True
         )
