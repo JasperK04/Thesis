@@ -134,5 +134,3 @@ class BaseStrategy(object):
                 print(
                     f"completed {local_idx + 1}/{num_items} (dataset index {dataset_idx}), Solved: {self.results[local_idx]['is_solved']}, number of success = {num_success}/{local_idx + 1}, acc = {round(num_success / (local_idx + 1) * 100, 2)}"
                 )
-
-            break
