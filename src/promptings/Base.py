@@ -1,6 +1,6 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
 import copy
-from typing import List
+from typing import List, Optional
 
 from challenge_datasets import Dataset
 from models.Base import BaseModel
@@ -31,11 +31,20 @@ class BaseStrategy(object):
     def run_single_pass(self, item: dict):
         pass
 
-    def run(self):
-        num_items = len(self.data)
+    def run(self, start_idx: int = 0, end_idx: Optional[int] = None):
+        num_total = len(self.data)
+        start_idx = max(0, start_idx)
+        if end_idx is None or end_idx > num_total:
+            end_idx = num_total
+        if end_idx < start_idx:
+            raise ValueError(f"end_idx ({end_idx}) must be >= start_idx ({start_idx})")
+
+        indices = range(start_idx, end_idx)
+        num_items = len(indices)
         num_success = 0
 
-        for i, item in enumerate(self.data):
+        for local_idx, dataset_idx in enumerate(indices):
+            item = self.data[dataset_idx]
             print("", flush=True, end="")
 
             # if i < len(self.results):
@@ -64,8 +73,8 @@ class BaseStrategy(object):
 
             #     continue
 
-            if i < len(self.results):
-                item = copy.deepcopy(self.results[i])
+            if local_idx < len(self.results):
+                item = copy.deepcopy(self.results[local_idx])
                 cur_pass = len(item["source_codes"])
                 is_solved = item["is_solved"]
                 cur_imp = item["source_codes"][-1]
@@ -115,15 +124,15 @@ class BaseStrategy(object):
             item["language"] = self.language
             item["task_id"] = item[self.data.id_key]
 
-            if i < len(self.results):
-                self.results.results[i] = item
+            if local_idx < len(self.results):
+                self.results.results[local_idx] = item
                 self.results.save_results()
             else:
                 self.results.add_result(item)
 
             if self.verbose:
                 print(
-                    f"completed {i + 1}/{num_items}, Solved: {self.results[i]['is_solved']}, number of success = {num_success}/{i + 1}, acc = {round(num_success / (i + 1) * 100, 2)}"
+                    f"completed {local_idx + 1}/{num_items} (dataset index {dataset_idx}), Solved: {self.results[local_idx]['is_solved']}, number of success = {num_success}/{local_idx + 1}, acc = {round(num_success / (local_idx + 1) * 100, 2)}"
                 )
 
             break

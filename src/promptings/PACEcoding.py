@@ -94,12 +94,12 @@ class PACEcoding(BaseStrategy):
 
         result = self.xml_to_dict(root)
 
-        print(
-            color_text(
-                f"Parsed XML to dict:\n{json.dumps(result, indent=2)}", COLOR_YELLOW
-            ),
-            flush=True,
-        )
+        # print(
+        #     color_text(
+        #         f"Parsed XML to dict:\n{json.dumps(result, indent=2)}", COLOR_YELLOW
+        #     ),
+        #     flush=True,
+        # )
 
         if "root" in result and "problem" not in result:
             nested = result.get("root")

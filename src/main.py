@@ -62,6 +62,18 @@ parser.add_argument(
     action="store_true",
     help="Run code execution locally via subprocess instead of posting to an executor server",
 )
+parser.add_argument(
+    "--start",
+    type=int,
+    default=0,
+    help="Start index (0-based, inclusive) for dataset slicing",
+)
+parser.add_argument(
+    "--end",
+    type=int,
+    default=None,
+    help="End index (0-based, exclusive) for dataset slicing",
+)
 
 args = parser.parse_args()
 
@@ -83,8 +95,21 @@ MODEL_NAME = args.model
 TEMPERATURE = args.temperature
 PASS_AT_K = args.pass_at_k
 LANGUAGE = args.language
+dataset = DatasetFactory.get_dataset_class(DATASET)()
 
-RUN_NAME = f"{MODEL_NAME}-{STRATEGY}-{DATASET}-{LANGUAGE}-{TEMPERATURE}-{PASS_AT_K}"
+start_idx = max(0, args.start)
+end_idx = min(args.end, len(dataset))
+num_total = len(dataset)
+if end_idx is None or end_idx > num_total:
+    end_idx = num_total
+if end_idx < start_idx:
+    raise ValueError(f"end-index ({end_idx}) must be >= start-index ({start_idx})")
+
+range_suffix = ""
+if start_idx != 0 or end_idx != num_total:
+    range_suffix = f"-{start_idx}-{end_idx}"
+
+RUN_NAME = f"{MODEL_NAME}-{STRATEGY}-{DATASET}-{LANGUAGE}-{TEMPERATURE}-{PASS_AT_K}{range_suffix}"
 RESULTS_PATH = f"./outputs/{RUN_NAME}.jsonl"
 
 print(
@@ -93,13 +118,13 @@ print(
 
 strategy = PromptingFactory.get_prompting_class(STRATEGY)(
     model=ModelFactory.get_model_class(MODEL_NAME)(temperature=TEMPERATURE),
-    data=DatasetFactory.get_dataset_class(DATASET)(),
+    data=dataset,
     language=LANGUAGE,
     pass_at_k=PASS_AT_K,
     results=Results(RESULTS_PATH),
 )
 
-strategy.run()
+strategy.run(start_idx=start_idx, end_idx=end_idx)
 
 print(
     f"#########################\nRunning end {RUN_NAME}, Time: {datetime.now()}\n##########################\n"
