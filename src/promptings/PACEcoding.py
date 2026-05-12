@@ -261,7 +261,7 @@ Your response must follow the following xml format:
                 color_text("Warning: No <problem> tag found in XML.", COLOR_RED),
                 file=sys.stderr,
             )
-            return
+            return "no problems found in XML", pr_tok, com_tok
         if not isinstance(problems, list):
             problems = [problems]
 
