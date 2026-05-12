@@ -231,3 +231,8 @@ logs/*
 test.ipynb
 **prompt.py
 outputs/
+
+stats.py
+generate_latex_tables.py
+*.sh
+run
