@@ -36,7 +36,7 @@ class Dataset(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def evaluate_sample_io(self, item, code, language) -> (bool, str):
+    def evaluate_sample_io(self, item, code, language) -> tuple[bool, str, str]:
         """Evaluate the generated code on sample input/output pairs.
-        Returns a tuple of (passed: bool, feedback: str)."""
+        Returns a tuple of (passed: bool, feedback: str, reason: str)."""
         pass

@@ -346,7 +346,7 @@ Your response must follow the following xml format-
             passed = False
 
             for i in range(1, self.t + 1):
-                passed, test_log = self.data.evaluate_sample_io(
+                passed, test_log, _ = self.data.evaluate_sample_io(
                     item, code, self.language
                 )
 

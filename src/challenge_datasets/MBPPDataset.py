@@ -30,14 +30,14 @@ class MBPPDataset(Dataset):
         language: str,
     ):
         if "sample_io" not in item:
-            return True, ""
+            return True, "", "passed"
         if len(item["sample_io"]) == 0:
-            return True, ""
+            return True, "", "passed"
         status, test_log = evaluate_io(
             sample_io=item["sample_io"],
             completion=cur_imp,
         )
-        return status == "passed", test_log
+        return status == "passed", test_log, status
 
     @staticmethod
     def get_prompt(item):

@@ -33,7 +33,7 @@ class AoCDataset(Dataset):
         language: str,
     ):
         if len(item["sample_io"]) == 0:
-            return True, ""
+            return True, "", "passed"
         return contest_evaluate_public_tests(
             generated_code=cur_imp,
             id=item["id"],

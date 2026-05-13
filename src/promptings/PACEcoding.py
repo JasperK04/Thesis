@@ -489,7 +489,7 @@ Generate only the {self.language} code. Do not include any explanations.
             passed = False
 
             for i in range(1, self.t + 1):
-                passed, test_log = self.data.evaluate_sample_io(
+                passed, test_log, failure_reason = self.data.evaluate_sample_io(
                     item, code, self.language
                 )
 
@@ -502,7 +502,7 @@ Generate only the {self.language} code. Do not include any explanations.
                 input_for_improving_code = [
                     {
                         "role": "user",
-                        "content": f"Given a competitive programming problem you have generated {self.language} code to solve the problem. But the generated code can not pass sample test cases. Improve your code to solve the problem correctly.\n{algorithm_prompt}\n## Problem to be solved:\n{self.data.get_prompt(item)}\n{response}\n## Test Report:\n{test_log}\n## Modified Planning:\n## Let's think step by step to modify {self.language} Code for solving this problem.\n\n----------------\nImportant:\n{std_input_prompt}\n## Your response must contain the modified planning and then the {self.language} code inside ``` block to solve this problem.",
+                        "content": f"Given a competitive programming problem you have generated {self.language} code to solve the problem. But the generated code can not pass sample test cases. Improve your code to solve the problem correctly.\n{algorithm_prompt}\n## Problem to be solved:\n{self.data.get_prompt(item)}\n{response}\n## Failure Reason:\n{failure_reason}\n## Test Report:\n{test_log}\n## Modified Planning:\n## Let's think step by step to modify {self.language} Code for solving this problem.\n\n----------------\nImportant:\n{std_input_prompt}\n## Your response must contain the modified planning and then the {self.language} code inside ``` block to solve this problem.",
                     }
                 ]
 

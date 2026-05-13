@@ -51,6 +51,32 @@ def _status_from_results(results: object) -> str:
     return "failed"
 
 
+def _failure_reason_from_results(results: object) -> str:
+    if results == "error":
+        return "failed"
+    if not isinstance(results, list):
+        return "failed"
+
+    priority = [
+        ExecOutcome.TIME_LIMIT_EXCEEDED.value,
+        ExecOutcome.COMPILATION_ERROR.value,
+        ExecOutcome.RUNTIME_ERROR.value,
+        ExecOutcome.MEMORY_LIMIT_EXCEEDED.value,
+        ExecOutcome.WRONG_ANSWER.value,
+    ]
+    seen = set()
+    for result in results:
+        seen.add(result.get("exec_outcome"))
+
+    for outcome in priority:
+        if outcome in seen:
+            return outcome
+
+    if all(result.get("exec_outcome") == ExecOutcome.PASSED.value for result in results):
+        return "passed"
+    return "failed"
+
+
 def xcode_evaluate(generated_code: str, src_uid: str, lang: str):
 
     assert src_uid in unittest_db, "Can not find the task id or source id"
@@ -138,6 +164,9 @@ def contest_evaluate_public_tests(
         stop_on_first_fail=False,
     )
 
+    if results == "error" or not isinstance(results, list):
+        return False, "Executor error.", "failed"
+
     passed = True
     passed_feedback = []
     failed_feedback = []
@@ -174,4 +203,5 @@ def contest_evaluate_public_tests(
         f"## Tests passed:\n{passed_feedback}\n\n## Tests failed:\n{failed_feedback}"
     )
 
-    return passed, feedback
+    reason = "passed" if passed else _failure_reason_from_results(results)
+    return passed, feedback, reason

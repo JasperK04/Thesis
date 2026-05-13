@@ -31,7 +31,7 @@ class HumanDataset(Dataset):
             sample_io=item["sample_io"],
             completion=cur_imp,
         )
-        return status == "passed", test_log
+        return status == "passed", test_log, status
 
     @staticmethod
     def get_prompt(item):
