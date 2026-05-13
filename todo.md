@@ -1,22 +1,22 @@
 # TODO – AoC Multi-Agent Coding Thesis
 
 ## Core System Setup
-- [ ] Get a fully workable end-to-end system (minimal pipeline runs without crashing)
+- [x] Get a fully workable end-to-end system (minimal pipeline runs without crashing)
 
 ---
 
 ## Dataset Preparation
-- [ ] Receive / collect dataset for fine-tuning
-- [ ] Convert dataset to correct format (JSONL)
-- [ ] Validate dataset structure (input/output pairs)
+- [x] Receive / collect dataset for fine-tuning
+- [x] Convert dataset to correct format (JSONL)
+- [x] Validate dataset structure (input/output pairs)
 - [ ] Clean dataset (remove invalid / broken samples / inefficient solutions)
 
 ---
 
 ## Fine-tuning
-- [ ] Configure fine-tuning method (LoRA)
-- [ ] Implement training script
-- [ ] Ensure training runs on Hábrók without OOM
+- [x] Configure fine-tuning method (LoRA)
+- [x] Implement training script
+- [x] Ensure training runs on Hábrók without OOM
 - [ ] Save model + tokenizer correctly
 - [ ] Validate saved checkpoints
 - [ ] Evaluate fine-tuned model on small test set
@@ -24,30 +24,22 @@
 
 ---
 
-## Pipeline Implementation
-
----
-
 ## AoC Evaluation
-- [ ] Prepare AoC dataset subset
-- [ ] Test run the whole pipeline on AoC dataset
-- [ ] Debug failures in pipeline stages
-- [ ] Measure pass rate under time constraints
-- [ ] Log token usage and runtime
+- [x] Test run the whole pipeline on AoC dataset
+- [x] Debug failures in pipeline stages
+- [x] Measure pass rate under time constraints
+- [x] Log token usage and runtime
 - [ ] Analyze common failure cases
 
 ---
 
 ## Model Comparison Experiments
 - [ ] Run full pipeline with:
-  - [ ] ChatGPT model
-  - [ ] Qwen3.6
-  - [ ] Qwen3-coder
-  - [ ] Fine-tuned Qwen3.6
-  - [ ] (Optional) Gemini model
+  - [x] GPT4.1-mini
+  - [ ] GPT5.4-nano
+  - [ ] Qwen3.5
+  - [ ] Fine-tuned Qwen3.5
 - [ ] Compare performance across models
-- [ ] Compare efficiency (timeouts vs passes)
-- [ ] Compare token cost / runtime
 
 ---
 
@@ -59,20 +51,21 @@
 ---
 
 ## Ablation Study
-- [ ] Remove previewing agent → evaluate impact
-- [ ] Remove planning stage → evaluate impact
-- [ ] Remove debugging agent → evaluate impact
-- [ ] Compare single-agent vs multi-agent pipeline
+- [ ] Remove previewing agent
+- [ ] Remove planning stage
+- [ ] Remove debugging agent
+- [ ] Remove previewing and planning agents
+- [ ] Remove previewing and debugging agents
+- [ ] Remove planning and debugging agents
+- [ ] Compare ablation pipelines
 - [ ] Analyze contribution
 
 ---
 
 ## Analysis & Metrics
 - [ ] Compute pass@1
-- [ ] Track TIMEOUT rate
 - [ ] Measure runtime per task
 - [ ] Measure token usage
-- [ ] Analyze complexity patterns (naive vs optimized solutions)
 - [ ] Identify failure categories:
   - [ ] incorrect logic
   - [ ] inefficient algorithm
@@ -112,7 +105,6 @@
 ### Experiments
 - [ ] AoC results
 - [ ] Model comparison
-- [ ] Additional benchmarks (HumanEval, APPS)
 - [ ] Ablation study
 
 ### Results & Analysis

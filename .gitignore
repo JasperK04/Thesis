@@ -234,5 +234,6 @@ outputs/
 
 stats.py
 generate_latex_tables.py
+replace_is_solved.py
 *.sh
 run
