@@ -122,7 +122,9 @@ def main() -> int:
 
     for key, infos in sorted(groups.items()):
         model, strat, dataset, language, temperature, pass_k = key
-        output_name = f"{model}-{strat}-{dataset}-{language}-{temperature}-{pass_k}-combined.jsonl"
+        output_name = (
+            f"{model}-{strat}-{dataset}-{language}-{temperature}-{pass_k}.jsonl"
+        )
         output_path = infos[0].path.parent / output_name
         if args.dry_run:
             batch_list = ", ".join(i.path.name for i in sorted(infos, key=sort_key))
