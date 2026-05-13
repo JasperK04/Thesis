@@ -1,28 +1,26 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
+import re
+
 from promptings import (
-    AnalogicalStrategy,
-    CoTStrategy,
     DirectStrategy,
     MapCoder,
     PACEcoding,
-    SelfPlanningStrategy,
 )
+
+
+def normalize(prompting_name):
+    return re.sub(r"[^a-zA-Z0-9]", "", prompting_name).lower()
 
 
 class PromptingFactory:
     @staticmethod
     def get_prompting_class(prompting_name):
-        if prompting_name == "PACEcoding":
+        prompting = normalize(prompting_name)
+        if prompting in ["pacecoding", "pace"]:
             return PACEcoding
-        elif prompting_name == "CoT":
-            return CoTStrategy
-        elif prompting_name == "MapCoder":
+        elif prompting in ["mapcoder", "map"]:
             return MapCoder
-        elif prompting_name == "Direct":
+        elif prompting in ["direct"]:
             return DirectStrategy
-        elif prompting_name == "Analogical":
-            return AnalogicalStrategy
-        elif prompting_name == "SelfPlanning":
-            return SelfPlanningStrategy
         else:
             raise Exception(f"Unknown prompting name {prompting_name}")

@@ -24,7 +24,6 @@ parser.add_argument(
     "--strategy",
     type=str,
     default="PACEcoding",
-    choices=["Direct", "CoT", "SelfPlanning", "Analogical", "MapCoder", "PACEcoding"],
 )
 parser.add_argument(
     "--model",
