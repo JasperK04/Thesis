@@ -76,7 +76,13 @@ class BaseStrategy(object):
             if local_idx < len(self.results):
                 item = copy.deepcopy(self.results[local_idx])
                 cur_pass = len(item["source_codes"])
-                is_solved = item["is_solved"]
+                status = item.get("status")
+                if status is None:
+                    is_solved = item.get("is_solved")
+                    if isinstance(is_solved, bool):
+                        status = "passed" if is_solved else "failed"
+                    else:
+                        status = "failed"
                 cur_imp = item["source_codes"][-1]
             else:
                 item = copy.deepcopy(item)
@@ -87,10 +93,10 @@ class BaseStrategy(object):
                 item["no_of_try"] = 0
 
                 cur_pass = 0
-                is_solved = False
+                status = "failed"
                 cur_imp = ""
 
-            while cur_pass < self.pass_at_k and not is_solved:
+            while cur_pass < self.pass_at_k and status != "passed":
                 # for _ in range(10):
                 #     try:
                 response, prompt_tokens, completion_tokens = self.run_single_pass(item)
@@ -111,16 +117,19 @@ class BaseStrategy(object):
                 item["completion_tokens"].append(completion_tokens)
                 item["no_of_try"] += 1
 
-                is_solved = self.data.evaluate(
+                status = self.data.evaluate(
                     item=item, cur_imp=cur_imp, language=self.language
                 )
+                if isinstance(status, bool):
+                    status = "passed" if status else "failed"
 
                 cur_pass += 1
 
-            if is_solved:
+            if status == "passed":
                 num_success += 1
 
-            item["is_solved"] = is_solved
+            item["status"] = status
+            item.pop("is_solved", None)
             item["language"] = self.language
             item["task_id"] = item[self.data.id_key]
 
@@ -132,5 +141,5 @@ class BaseStrategy(object):
 
             if self.verbose:
                 print(
-                    f"completed {local_idx + 1}/{num_items} (dataset index {dataset_idx}), Solved: {self.results[local_idx]['is_solved']}, number of success = {num_success}/{local_idx + 1}, acc = {round(num_success / (local_idx + 1) * 100, 2)}"
+                    f"completed {local_idx + 1}/{num_items} (dataset index {dataset_idx}), Status: {self.results[local_idx]['status']}, number of success = {num_success}/{local_idx + 1}, acc = {round(num_success / (local_idx + 1) * 100, 2)}"
                 )

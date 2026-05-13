@@ -21,8 +21,7 @@ class MBPPDataset(Dataset):
     ):
         # result, _ = evaluate_io(item['test_list'],cur_imp,5,True)
         # return result
-        result = evaluate_functional_correctness(problem=item, completion=cur_imp)
-        return result == "passed"
+        return evaluate_functional_correctness(problem=item, completion=cur_imp)
 
     def evaluate_sample_io(
         self,
@@ -34,10 +33,11 @@ class MBPPDataset(Dataset):
             return True, ""
         if len(item["sample_io"]) == 0:
             return True, ""
-        return evaluate_io(
+        status, test_log = evaluate_io(
             sample_io=item["sample_io"],
             completion=cur_imp,
         )
+        return status == "passed", test_log
 
     @staticmethod
     def get_prompt(item):

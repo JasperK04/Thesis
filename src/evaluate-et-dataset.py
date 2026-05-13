@@ -1,13 +1,14 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-from utils.jsonl import read_jsonl, write_jsonl
-from evaluations.func_evaluate import evaluate_io_et
 import os
+
+from evaluations.func_evaluate import evaluate_io_et
+from utils.jsonl import read_jsonl, write_jsonl
 
 
 def generate_et_dataset(
-        NORMAL_RESULTS_PATH,
-        ET_RESULTS_PATH,
-        ET_DATA_PATH=".\\data\\HumanEval\\HumanEvalET.jsonl"
+    NORMAL_RESULTS_PATH,
+    ET_RESULTS_PATH,
+    ET_DATA_PATH=".\\data\\HumanEval\\HumanEvalET.jsonl",
 ):
     dataset = read_jsonl(ET_DATA_PATH)
     data_dict = {}
@@ -23,39 +24,41 @@ def generate_et_dataset(
     for key, value in data_dict.items():
         item = value["et_item"]
         result = value["result"]
-        generated_code = result["source_codes"][0] if "source_codes" in result else result["solution"]
-
-        passed = evaluate_io_et(
-            item['test_case_list'],
-            generated_code,
-            prompt=item["prompt"]
+        generated_code = (
+            result["source_codes"][0]
+            if "source_codes" in result
+            else result["solution"]
         )
 
-        if passed:
-            result["is_solved"] = True
+        status = evaluate_io_et(
+            item["test_case_list"], generated_code, prompt=item["prompt"]
+        )
+
+        if status == "passed":
+            result["status"] = "passed"
             correct_count += 1
         else:
-            result["is_solved"] = False
+            result["status"] = status
+        result.pop("is_solved", None)
 
         et_results.append(result)
         print(
-            f"Accuracy: {correct_count}/{len(et_results)} = {correct_count/len(et_results):.2f}")
+            f"Accuracy: {correct_count}/{len(et_results)} = {correct_count / len(et_results):.2f}"
+        )
     # write_jsonl(ET_RESULTS_PATH, et_results)
 
-    et_results = sorted(
-        et_results,
-        key=lambda x: int(x["task_id"].split('/')[-1])
-    )
+    et_results = sorted(et_results, key=lambda x: int(x["task_id"].split("/")[-1]))
 
     write_jsonl(ET_RESULTS_PATH, et_results)
     print(
-        f"Accuracy: {correct_count}/{len(et_results)} = {correct_count/len(et_results):.2f}")
+        f"Accuracy: {correct_count}/{len(et_results)} = {correct_count / len(et_results):.2f}"
+    )
 
 
 def generate_et_dataset_mbpp(
-        NORMAL_RESULTS_PATH,
-        ET_RESULTS_PATH,
-        ET_DATA_PATH=".\\data\\MBPPEval\\MBPP_ET.jsonl"
+    NORMAL_RESULTS_PATH,
+    ET_RESULTS_PATH,
+    ET_DATA_PATH=".\\data\\MBPPEval\\MBPP_ET.jsonl",
 ):
     dataset = read_jsonl(ET_DATA_PATH)
     data_dict = {}
@@ -75,31 +78,30 @@ def generate_et_dataset_mbpp(
         if result is None:
             continue
 
-        generated_code = result["source_codes"][0] if "source_codes" in result else result["solution"]
-
-        passed = evaluate_io_et(
-            item['test_list'],
-            generated_code
+        generated_code = (
+            result["source_codes"][0]
+            if "source_codes" in result
+            else result["solution"]
         )
 
-        if passed:
-            result["is_solved"] = True
+        status = evaluate_io_et(item["test_list"], generated_code)
+
+        if status == "passed":
+            result["status"] = "passed"
             correct_count += 1
         else:
-            result["is_solved"] = False
+            result["status"] = status
+        result.pop("is_solved", None)
 
         et_results.append(result)
         print(
-            f"Accuracy: {correct_count}/{len(et_results)} = {correct_count/len(et_results):.2f}")
+            f"Accuracy: {correct_count}/{len(et_results)} = {correct_count / len(et_results):.2f}"
+        )
     # write_jsonl(ET_RESULTS_PATH, et_results)
 
-    et_results = sorted(
-        et_results,
-        key=lambda x: int(x["name"].split("_")[1])
-    )
+    et_results = sorted(et_results, key=lambda x: int(x["name"].split("_")[1]))
 
     write_jsonl(ET_RESULTS_PATH, et_results)
     print(
-        f"Accuracy: {correct_count}/{len(et_results)} = {correct_count/len(et_results):.2f}")
-
-
+        f"Accuracy: {correct_count}/{len(et_results)} = {correct_count / len(et_results):.2f}"
+    )

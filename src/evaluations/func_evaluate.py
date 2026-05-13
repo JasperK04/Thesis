@@ -26,13 +26,15 @@ def evaluate_io(
             )
             function_with_timeout(exec, (code, globals()), timeout)
             test_log += f"passed in test case: {io}\n"
+        except TimeoutError:
+            return "timeout", f"timed out in test case: {io}\n"
         except Exception:
             if stop_early:
-                return False, f"failed in test case: {io}\n"
+                return "failed", f"failed in test case: {io}\n"
             passed = False
             test_log += f"failed in test case: {io}\n"
 
-    return passed, test_log
+    return ("passed" if passed else "failed"), test_log
 
 
 def evaluate_io_et(
@@ -56,9 +58,11 @@ def evaluate_io_et(
             + "\n"
         )
         function_with_timeout(exec, (code, globals()), timeout)
-        return True
+        return "passed"
+    except TimeoutError:
+        return "timeout"
     except Exception:
-        return False
+        return "failed"
 
 
 def evaluate_functional_correctness(
@@ -83,8 +87,10 @@ def evaluate_functional_correctness(
 
         function_with_timeout(exec, (code, globals()), timeout)
         return "passed"
-    except Exception as e:
-        return f"failed: {e}"
+    except TimeoutError:
+        return "timeout"
+    except Exception:
+        return "failed"
 
 
 def evaluate_functional_correctness2(
@@ -108,9 +114,9 @@ def evaluate_functional_correctness2(
         exec(check_program)
         return "passed"
     except TimeoutException:
-        return "timed out"
-    except BaseException as e:
-        return f"failed: {e}"
+        return "timeout"
+    except BaseException:
+        return "failed"
 
 
 class TimeoutException(Exception):

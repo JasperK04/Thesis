@@ -29,6 +29,28 @@ with open(unittest_file) as ut_rp:
 api_comm = APICommunication()
 
 
+def _status_from_results(results: object) -> str:
+    if results == "error":
+        return "failed"
+    if not isinstance(results, list):
+        return "failed"
+
+    saw_timeout = False
+    all_passed = True
+    for result in results:
+        exec_outcome = result.get("exec_outcome")
+        if exec_outcome == ExecOutcome.TIME_LIMIT_EXCEEDED.value:  # type: ignore
+            saw_timeout = True
+        if exec_outcome != ExecOutcome.PASSED.value:  # type: ignore
+            all_passed = False
+
+    if all_passed:
+        return "passed"
+    if saw_timeout:
+        return "timeout"
+    return "failed"
+
+
 def xcode_evaluate(generated_code: str, src_uid: str, lang: str):
 
     assert src_uid in unittest_db, "Can not find the task id or source id"
@@ -44,17 +66,7 @@ def xcode_evaluate(generated_code: str, src_uid: str, lang: str):
         limits=limits_by_lang[LANGUAGE_MAPPING[lang]],
         task_id=src_uid,
     )
-
-    if results == "error":
-        return False
-
-    passed = True
-    for result in results:
-        if result["exec_outcome"] != ExecOutcome.PASSED.value:  # type: ignore
-            passed = False
-            break
-
-    return passed
+    return _status_from_results(results)
 
 
 def xcode_execute_internal_test(
@@ -108,17 +120,7 @@ def contest_evaluate(
         limits=limits_by_lang[LANGUAGE_MAPPING[lang]],
         task_id=id,
     )
-
-    if results == "error":
-        return False
-
-    passed = True
-    for result in results:
-        if result["exec_outcome"] != ExecOutcome.PASSED.value:  # type: ignore
-            passed = False
-            break
-
-    return passed
+    return _status_from_results(results)
 
 
 def contest_evaluate_public_tests(

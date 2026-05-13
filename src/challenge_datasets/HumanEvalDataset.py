@@ -19,8 +19,7 @@ class HumanDataset(Dataset):
         cur_imp: str,
         language: str,
     ):
-        result = evaluate_functional_correctness(problem=item, completion=cur_imp)
-        return result == "passed"
+        return evaluate_functional_correctness(problem=item, completion=cur_imp)
 
     def evaluate_sample_io(
         self,
@@ -28,11 +27,11 @@ class HumanDataset(Dataset):
         cur_imp: str,
         language: str,
     ):
-
-        return evaluate_io(
+        status, test_log = evaluate_io(
             sample_io=item["sample_io"],
             completion=cur_imp,
         )
+        return status == "passed", test_log
 
     @staticmethod
     def get_prompt(item):
