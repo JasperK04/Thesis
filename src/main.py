@@ -30,15 +30,8 @@ parser.add_argument(
     "--model",
     type=str,
     default="Qwen",
-    choices=[
-        "ChatGPT",
-        "GPT4",
-        "Gemini",
-        "Qwen",
-        "QwenCoder",
-        "QwenFineTuned",
-    ],
 )
+
 parser.add_argument("--temperature", type=float, default=0)
 parser.add_argument("--pass_at_k", type=int, default=1)
 parser.add_argument(
@@ -71,7 +64,7 @@ parser.add_argument(
 parser.add_argument(
     "--end",
     type=int,
-    default=None,
+    default=float("inf"),
     help="End index (0-based, exclusive) for dataset slicing",
 )
 

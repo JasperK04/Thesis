@@ -173,13 +173,6 @@ class Qwen35(QwenLocal):
         super().__init__(model_name=model_name, **kwargs)
 
 
-class Qwen3_Coder(QwenLocal):
-    def __init__(self, **kwargs):
-        raise NotImplementedError("Qwen3-Coder is much bigger and not tested yet")
-        model_name = "Qwen/Qwen3-Coder-30B-A3B-Instruct"  # 30B params
-        super().__init__(model_name=model_name, **kwargs)
-
-
 class Qwen35_FineTuned(QwenLocal):
     def __init__(self, **kwargs):
         raise NotImplementedError("Qwen3.5_FineTuned is not implemented yet")
