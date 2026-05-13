@@ -1,14 +1,13 @@
 import os
 import subprocess
 import tempfile
-from typing import Dict, List, Tuple
 
 from .exec_outcome import ExecOutcome
 
 
 def _run_python_source(
     source_code: str, stdin_data: str, timeout: int
-) -> Tuple[int, str, str, bool]:
+) -> tuple[int, str, str, bool]:
     # Write source to temp file then execute with python
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as tf:
         tf.write(source_code)
@@ -40,19 +39,15 @@ def _run_python_source(
 def execute_code_locally(
     language: str,
     source_code: str,
-    unittests: List[Dict],
-    limits: Dict | None = None,
+    unittests: list[dict],
+    limits: dict | None = None,
     **kwargs,
-) -> Tuple[List[Dict], int | None, str | int | None]:
+) -> list[dict]:
     lang_norm = str(language).lower().replace(" ", "").replace("-", "")
     if not lang_norm.startswith("python"):
-        raise ValueError(
-            f"Local executor currently only supports Python3: got {language}"
-        )
+        raise ValueError(f"Local executor only supports Python3: got {language}")
 
     timeout = 5
-    if limits and isinstance(limits, dict):
-        timeout = int(limits.get("time", timeout))
 
     results = []
     for test in unittests:
@@ -93,4 +88,4 @@ def execute_code_locally(
             }
         )
 
-    return results, None, None
+    return results

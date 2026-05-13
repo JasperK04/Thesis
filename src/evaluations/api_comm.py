@@ -112,13 +112,13 @@ class APICommunication:
         )
         if self.use_local:
             # run locally using subprocess-based executor
-            results, sid, tid = local_executor.execute_code_locally(
+            results = local_executor.execute_code_locally(
                 language=language,
                 source_code=source_code,
                 unittests=unittests,
                 limits=limits,
             )
-            return results, sample_id, task_id
+            return results, sample_id, task_id  # type: ignore
 
         try:
             resp = self._session.post(
@@ -135,6 +135,6 @@ class APICommunication:
             )
 
         if "data" not in json_response:
-            return "error", sample_id, task_id
+            return "error", sample_id, task_id  # type: ignore
 
         return json_response["data"], sample_id, task_id

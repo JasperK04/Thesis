@@ -50,7 +50,7 @@ def xcode_evaluate(generated_code: str, src_uid: str, lang: str):
 
     passed = True
     for result in results:
-        if result["exec_outcome"] != ExecOutcome.PASSED.value:
+        if result["exec_outcome"] != ExecOutcome.PASSED.value:  # type: ignore
             passed = False
             break
 
@@ -76,9 +76,9 @@ def xcode_execute_internal_test(
     idx = 0
     try:
         for idx, result in enumerate(results):
-            if result["exec_outcome"] == ExecOutcome.PASSED.value:
+            if result["exec_outcome"] == ExecOutcome.PASSED.value:  # type: ignore
                 passed_feedback.append(tests[idx])
-            if result["exec_outcome"] != ExecOutcome.PASSED.value:
+            if result["exec_outcome"] != ExecOutcome.PASSED.value:  # type: ignore
                 failed_feedback.append(tests[idx])
                 passed = False
     except Exception as e:
@@ -114,7 +114,7 @@ def contest_evaluate(
 
     passed = True
     for result in results:
-        if result["exec_outcome"] != ExecOutcome.PASSED.value:
+        if result["exec_outcome"] != ExecOutcome.PASSED.value:  # type: ignore
             passed = False
             break
 
@@ -143,13 +143,13 @@ def contest_evaluate_public_tests(
     idx = 0
     try:
         for idx, result in enumerate(results):
-            output = str(result["result"])
+            output = str(result["result"])  # type: ignore
             if len(output) > 500:
                 output = output[:500] + "..."
             test_case = f"Input:\n{tests[idx]['input']}\nExpected Output:\n{tests[idx]['output'][0]}\nYour Output:\n{output}\n"
-            if result["exec_outcome"] == ExecOutcome.PASSED.value:
+            if result["exec_outcome"] == ExecOutcome.PASSED.value:  # type: ignore
                 passed_feedback.append(test_case)
-            if result["exec_outcome"] != ExecOutcome.PASSED.value:
+            if result["exec_outcome"] != ExecOutcome.PASSED.value:  # type: ignore
                 failed_feedback.append(test_case)
                 passed = False
     except Exception as e:
@@ -169,7 +169,7 @@ def contest_evaluate_public_tests(
     )
     failed_feedback = "\n".join(failed_feedback)
     feedback = (
-        f"## Tested passed:\n{passed_feedback}\n\n## Tests failed:\n{failed_feedback}"
+        f"## Tests passed:\n{passed_feedback}\n\n## Tests failed:\n{failed_feedback}"
     )
 
     return passed, feedback

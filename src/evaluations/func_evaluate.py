@@ -67,8 +67,6 @@ def evaluate_functional_correctness(
     timeout: int = 5,
     test_key: str = "test",
 ):
-    # if problem["name"] == "mbpp_61_count_Substrings":
-    #     pass
     try:
         code = (
             (
@@ -92,8 +90,8 @@ def evaluate_functional_correctness(
 def evaluate_functional_correctness2(
     problem: dict,
     completion: str,
-    timeout: float = 10,
-) -> dict:
+    timeout: float = 5,
+) -> str:
 
     check_program = (
         # problem["prompt"] +

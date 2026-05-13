@@ -38,14 +38,7 @@ parser.add_argument(
     type=str,
     default="Python3",
     choices=[
-        "C",
-        "C#",
-        "C++",
-        "Go",
-        "PHP",
         "Python3",
-        "Ruby",
-        "Rust",
     ],
 )
 parser.add_argument(
