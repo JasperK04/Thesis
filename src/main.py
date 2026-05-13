@@ -19,20 +19,49 @@ parser.add_argument(
         "xCodeEval",
         "CC",
     ],
+    help="""
+    Dataset to use for the experiment, 
+    available are: "AoC", "HumanEval", "MBPP", "APPS", "xCodeEval", "CC".
+    Defaults to "AoC".
+    """.strip(),
 )
 parser.add_argument(
     "--strategy",
     type=str,
     default="PACEcoding",
+    help="""
+    Prompting strategy to use for the experiment,
+    available are: "Direct", "MapCoder" and "PACEcoding". defaults to "PACEcoding".
+    """.strip(),
 )
 parser.add_argument(
     "--model",
     type=str,
     default="Qwen",
+    help="""
+    Model to use for the experiment, 
+    available are: "Qwen", "Qwen-finetuned", "GPT-4.1-mini" and "GPT-5.4-nano".
+    Defaults to "Qwen".
+    """.strip(),
 )
 
-parser.add_argument("--temperature", type=float, default=0)
-parser.add_argument("--pass_at_k", type=int, default=1)
+parser.add_argument(
+    "--temperature",
+    type=float,
+    default=0.0,
+    help="""
+    Temperature to use for the model, defaults to 0.0 for reproducibility.
+    Lower is more deterministic, higher is more creative.
+    """.strip(),
+)
+parser.add_argument(
+    "--pass_at_k",
+    type=int,
+    default=1,
+    help="""
+    Pass-at-k value for the experiment, defaults to 1.
+    """.strip(),
+)
 parser.add_argument(
     "--language",
     type=str,
@@ -40,6 +69,10 @@ parser.add_argument(
     choices=[
         "Python3",
     ],
+    help="""
+    Programming language to use for the experiment, defaults to Python3.
+    This is the only language currently supported.
+    """.strip(),
 )
 parser.add_argument(
     "--local",
