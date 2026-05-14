@@ -158,7 +158,13 @@ class OpenAIModel(OpenAIBaseModel):
             Response from the openai python library
 
         """
-        self.model_params["max_tokens"] = 4096
+        if self.model_params["model"] == "gpt-4.1-mini-2025-04-14":
+            self.model_params["max_tokens"] = 4096
+        else:
+            self.model_params.pop(
+                "max_tokens", None
+            )  # Remove max_tokens if it exists for other models
+            self.model_params["max_completion_tokens"] = 4096
 
         response = self.openai.chat.completions.create(  # type: ignore
             messages=processed_input,  # type: ignore
