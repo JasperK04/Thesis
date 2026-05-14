@@ -1,13 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=finetune_qwen
-#SBATCH --output=tune/%x_%j.out
-#SBATCH --error=tune/%x_%j.err
+#SBATCH --output=tune/%x.out
+#SBATCH --error=tune/%x.err
 #SBATCH --gres=gpu:rtx_pro_6000:4
 #SBATCH --time=12:00:00
 #SBATCH --mem=32G
-
-#SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=j.kleine.4@student.rug.nl
 
 echo "Starting job on $(hostname)"
 echo "Time: $(date)"
