@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=qwen_test
-#SBATCH --output=logs/%x_%j.out
-#SBATCH --error=logs/%x_%j.err
-#SBATCH --gres=gpu:2
+#SBATCH --job-name=finetune_qwen
+#SBATCH --output=tune/%x_%j.out
+#SBATCH --error=tune/%x_%j.err
+#SBATCH --gres=gpu:rtx_pro_6000:4
 #SBATCH --time=12:00:00
 #SBATCH --mem=32G
 
@@ -14,10 +14,10 @@ echo "Time: $(date)"
 
 # Load modules
 module load Python/3.11
-module load CUDA/12.1
+module load CUDA/12.6.0
 
 # Activate environment
-source /scratch/$USER/qwen_env/bin/activate
+source /scratch/$USER/tune_env/bin/activate
 
 # Load environment variables
 source /home6/$USER/Thesis/env.sh
@@ -26,6 +26,6 @@ source /home6/$USER/Thesis/env.sh
 cd /home6/$USER/Thesis
 
 # Run your script
-python src/main.py --local --temperature 0.3
+python finetune.py
 
 echo "Finished at $(date)"
