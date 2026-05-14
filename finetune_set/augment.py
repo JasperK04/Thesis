@@ -1,11 +1,13 @@
 import ast
 import json
 import re
+import warnings
 from pathlib import Path
 
-CODE_DATASET = Path("raw_solutions.jsonl")
-AOC_DATASET = Path("../data/AoC/aoc.jsonl")
-OUTPUT_FILE = Path("train.jsonl")
+SCRIPT_DIR = Path(__file__).resolve().parent
+CODE_DATASET = SCRIPT_DIR / "raw_solutions.jsonl"
+AOC_DATASET = SCRIPT_DIR.parent / "data" / "AoC" / "aoc.jsonl"
+OUTPUT_FILE = SCRIPT_DIR / "train.jsonl"
 
 EFFICIENCY_INSTRUCTION = (
     "Solve this Advent of Code problem in Python using a "
@@ -15,6 +17,15 @@ EFFICIENCY_INSTRUCTION = (
 
 
 def load_aoc_problems():
+    """Load AoC problems indexed by (year, day, part).
+
+    Reads the AoC JSONL dataset at AOC_DATASET where each line has an "id" in
+    the form "YYYY_DD_P" and stores each full entry by (year, day, part).
+
+    Returns:
+        dict[tuple[str, str, str], dict]: Mapping of (year, day, part) to the
+        parsed problem entry.
+    """
     problems = {}
 
     with open(AOC_DATASET, "r", encoding="utf-8") as f:
@@ -32,42 +43,117 @@ def load_aoc_problems():
 
 
 def build_prompt(problem_description):
+    """Build the training prompt prefix for a single AoC problem.
+
+    Args:
+        problem_description (str): Full problem statement text.
+
+    Returns:
+        str: A model chat prompt with the efficiency instruction prepended and
+        formatted using the expected chat tokens.
+    """
     augmented_problem = EFFICIENCY_INSTRUCTION + problem_description
 
     return f"<|im_start|>user\n{augmented_problem}\n<|im_end|>\n<|im_start|>assistant\n"
 
 
 def has_explicit_part_markers(code):
+    """Check for explicit Part 1/Part 2 markers in the code.
+
+    This looks for lowercase tokens "part 1" and "part 2" or compact forms
+    "part1" and "part2" in the raw source string.
+
+    Args:
+        code (str): Python source code string.
+
+    Returns:
+        bool: True if both part markers appear, otherwise False.
+    """
     lowered = code.lower()
 
-    return ("part 1" in lowered and "part 2" in lowered) or (
-        "part1" in lowered and "part2" in lowered
+    return (
+        ("part 1" in lowered and "part 2" in lowered)
+        or ("part1" in lowered and "part2" in lowered)
+        or ("p1" in lowered and "p2" in lowered)
     )
 
 
 def count_top_level_prints(code):
+    """Count print calls at top-level, in main(), or under __main__ guard.
+
+    A top-level print is a call expression directly in the module body. This
+    also counts prints inside a function named "main" and inside any
+    `if __name__ == "__main__":` block. Syntax warnings from invalid string
+    escapes in dataset code are suppressed during parsing.
+
+    Args:
+        code (str): Python source code string.
+
+    Returns:
+        int: Number of qualifying print calls; 0 if parsing fails.
+    """
     try:
-        tree = ast.parse(code)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", SyntaxWarning)
+            tree = ast.parse(code)
     except Exception:
         return 0
 
-    count = 0
+    def is_print_call(call_node):
+        return (
+            isinstance(call_node, ast.Call)
+            and isinstance(call_node.func, ast.Name)
+            and call_node.func.id == "print"
+        )
+
+    def count_prints_in_body(body_nodes):
+        total = 0
+        for body_node in body_nodes:
+            if isinstance(body_node, ast.Expr) and is_print_call(body_node.value):
+                total += 1
+        return total
+
+    def is_main_guard(test_node):
+        if not isinstance(test_node, ast.Compare):
+            return False
+        if not isinstance(test_node.left, ast.Name) or test_node.left.id != "__name__":
+            return False
+        if len(test_node.ops) != 1 or not isinstance(test_node.ops[0], ast.Eq):
+            return False
+        if len(test_node.comparators) != 1:
+            return False
+        comparator = test_node.comparators[0]
+        return isinstance(comparator, ast.Constant) and comparator.value == "__main__"
+
+    count = count_prints_in_body(tree.body)
 
     for node in tree.body:
-        if isinstance(node, ast.Expr):
-            value = node.value
-
-            if isinstance(value, ast.Call):
-                if isinstance(value.func, ast.Name):
-                    if value.func.id == "print":
-                        count += 1
+        if isinstance(node, ast.FunctionDef) and node.name == "main":
+            count += count_prints_in_body(node.body)
+        if isinstance(node, ast.If) and is_main_guard(node.test):
+            count += count_prints_in_body(node.body)
 
     return count
 
 
 def has_multiple_solver_invocations(code):
+    """Detect multiple distinct call signatures to the same function name.
+
+    This is a heuristic for combined Part 1/Part 2 solutions where the same
+    solver is invoked with different arguments. Syntax warnings from invalid
+    string escapes in dataset code are suppressed during parsing.
+
+    Args:
+        code (str): Python source code string.
+
+    Returns:
+        bool: True if any function name is called with 2+ distinct arg tuples;
+        False if parsing fails or no such pattern exists.
+    """
     try:
-        tree = ast.parse(code)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", SyntaxWarning)
+            tree = ast.parse(code)
     except Exception:
         return False
 
@@ -98,6 +184,17 @@ def has_multiple_solver_invocations(code):
 
 
 def filename_indicates_part(path):
+    """Infer AoC part from a file path using naming conventions.
+
+    Matches common patterns such as "part1", "part2", "sol1", "sol2", or
+    day-number suffixes like "day-07-2". Returns None if no pattern matches.
+
+    Args:
+        path (str): File path string from the dataset entry.
+
+    Returns:
+        str | None: "1" for part 1, "2" for part 2, or None if unknown.
+    """
     lowered = path.lower()
 
     part2_patterns = [
@@ -128,6 +225,21 @@ def filename_indicates_part(path):
 
 
 def classify_solution(entry):
+    """Classify a solution as part1, part2, combined, or unknown.
+
+    Heuristics are applied in this order:
+    1) Explicit Part 1/Part 2 markers in code -> combined
+    2) Multiple solver invocations -> combined
+    3) Two or more top-level prints -> combined
+    4) Filename hint -> part1 or part2
+    5) Otherwise -> unknown
+
+    Args:
+        entry (dict): Parsed JSONL entry with at least "code" and "path".
+
+    Returns:
+        str: One of "part1", "part2", "combined", or "unknown".
+    """
     code = entry["code"]
     path = entry["path"]
 
@@ -156,6 +268,17 @@ def classify_solution(entry):
 
 
 def determine_part(classification):
+    """Map a classification to the AoC part to pair with problem text.
+
+    Part 1 entries map to part "1". Part 2 and combined solutions are paired
+    with part "2" problems. Unknown classifications return None.
+
+    Args:
+        classification (str): Output from classify_solution().
+
+    Returns:
+        str | None: "1" or "2" if resolvable, otherwise None.
+    """
     if classification == "part1":
         return "1"
 
@@ -166,6 +289,13 @@ def determine_part(classification):
 
 
 def main():
+    """Generate a training JSONL by pairing solutions with AoC problems.
+
+    Loads the AoC problem index, classifies each solution in raw_solutions.jsonl,
+    and writes chat-formatted training records to train.jsonl. Skips entries
+    that are malformed, cannot be classified, or lack a matching AoC problem.
+    Prints a small summary of counts at the end.
+    """
     problems = load_aoc_problems()
 
     written = 0
@@ -203,6 +333,10 @@ def main():
             year = str(entry["year"])
             day = f"{int(entry['day']):02d}"
 
+            if int(year) < 2021:  # filter to mitigate leakage.
+                skipped += 1
+                continue
+
             part = determine_part(classification)
 
             if part is None:
@@ -230,8 +364,7 @@ def main():
                     "classification": classification,
                     "language": entry.get("language"),
                     "repo": entry.get("repo"),
-                    "path": entry.get("path"),
-                    "label": entry.get("label"),
+                    "author": entry.get("author"),
                     "problem_name": problem.get("name"),
                 },
             }
