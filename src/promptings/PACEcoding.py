@@ -180,7 +180,8 @@ You must identify the algorithms and explain them in a detailed tutorial includi
 {self.data.get_prompt(item)}
 
 # Exemplars:
-Recall {self.k} relevant and distinct problems (different from the given problem). For each problem:
+Recall {mapping[self.k]} relevant and distinct problems (different from the given problem). 
+For each problem:
 1. Describe it concisely
 2. Generate pseudocode step by step to solve that problem
 3. Analyze and extract 1-3 key code generation techniques or algorithms used in the solution
@@ -219,7 +220,7 @@ Your response must follow the following xml format:
 # Summarize the key code generation techniques learned from all the examples.
 </learned_techniques>
 </root>
-""",
+""".strip(),
             },
         ]
 
@@ -289,7 +290,7 @@ Your response must follow the following xml format:
                 {
                     "role": "user",
                     "content": f"""
-Given a competitive programming problem, generate {mapping[self.k]} unique, detailed, step-by-step plans to solve it.
+Given a competitive programming problem, generate one unique, detailed, step-by-step plan to solve it.
 # Example Problem:
 {example_problem}
 
@@ -323,7 +324,7 @@ Important:
 - Consider edge cases and input/output handling
 - Include time and space complexity considerations
 - Do not generate code, only the planning
-""",
+""".strip(),
                 }
             ]
 
@@ -345,15 +346,25 @@ Important:
             print(color_text("Response from our problem planning:", COLOR_BLUE))
             print(planning, flush=True)
 
-            input_for_planning_verification = [
-                {
-                    "role": "user",
-                    "content": f"""Evaluate the following plan for solving the problem. Provide a confidence score (0-100) and explain your reasoning.
+            plannings.append(planning)
+
+        plans_prompt = "\n".join(
+            f"plan {i}: {plan}" for i, plan in enumerate(plannings, start=1)
+        )
+
+        input_for_planning_verification = [
+            {
+                "role": "user",
+                "content": f"""
+Evaluate the following plans for solving the problem. 
+Provide a confidence score (0-100) for each plan and explain your reasoning.
+You must not assign any plan the same score as another plan such that there is a clear ranking.
+
 # Problem:
 {self.data.get_prompt(item)}
 
-# Proposed Plan:
-{planning}
+# Proposed Plans:
+{plans_prompt}
 
 # Evaluation Criteria:
 1. Completeness: Does the plan cover all aspects of the problem?
@@ -364,41 +375,71 @@ Important:
 
 # Your Response:
 <root>
+<plan>
 <analysis>
 # Detailed analysis of the plan's strengths and weaknesses
 </analysis>
 <confidence>
 # Confidence score (0-100 integer) based on the above criteria
 </confidence>
+</plan>
+# Add the other plan's analysis and confidence here...
 </root>
-""",
-                }
-            ]
+""".strip(),
+            }
+        ]
 
-            print(color_text("Input for planning verification:", COLOR_BLUE))
-            print(input_for_planning_verification[0]["content"], flush=True)
+        print(color_text("Input for planning verification:", COLOR_BLUE))
+        print(input_for_planning_verification[0]["content"], flush=True)
 
-            verification_res, pr_tok_1, com_tok_1 = self.gpt_chat(
-                input_for_planning_verification
+        verification_res, pr_tok_1, com_tok_1 = self.gpt_chat(
+            input_for_planning_verification
+        )
+        item["api_calls"] += 1
+        pr_tok += pr_tok_1
+        com_tok += com_tok_1
+
+        verification_res = self.replace_tag(verification_res, "analysis")
+        verification_res = self.replace_tag(verification_res, "confidence")
+        verification_res = self.parse_xml(verification_res, require_problem=False)
+
+        if "error" in verification_res:
+            print(
+                color_text(
+                    f"Error parsing XML: {verification_res['error']}", COLOR_RED
+                ),
+                file=sys.stderr,
+                flush=True,
             )
-            item["api_calls"] += 1
-            pr_tok += pr_tok_1
-            com_tok += com_tok_1
+            print(
+                color_text(f"Raw response: {verification_res['raw']}", COLOR_RED),
+                file=sys.stderr,
+                flush=True,
+            )
 
-            verification_res = self.replace_tag(verification_res, "analysis")
-            verification_res = self.replace_tag(verification_res, "confidence")
-            verification_res = self.parse_xml(verification_res, require_problem=False)
+        if "plan" not in verification_res:
+            print(
+                color_text("Warning: No <plan> tag found in XML.", COLOR_RED),
+                file=sys.stderr,
+                flush=True,
+            )
 
-            if "error" in verification_res:
+        verified_plans = []
+        for plan_dict, planning in zip(verification_res.get("plan", []), plannings):
+            if "analysis" not in plan_dict:
                 print(
                     color_text(
-                        f"Error parsing XML: {verification_res['error']}", COLOR_RED
+                        "Warning: Missing <analysis> tag in a <plan>.", COLOR_RED
                     ),
                     file=sys.stderr,
                     flush=True,
                 )
+                continue
+            if "confidence" not in plan_dict:
                 print(
-                    color_text(f"Raw response: {verification_res['raw']}", COLOR_RED),
+                    color_text(
+                        "Warning: Missing <confidence> tag in a <plan>.", COLOR_RED
+                    ),
                     file=sys.stderr,
                     flush=True,
                 )
@@ -406,7 +447,7 @@ Important:
 
             confidence_score = 0
             try:
-                confidence_text = verification_res.get("confidence", "0")
+                confidence_text = plan_dict.get("confidence", "0")
                 confidence_score = int(re.search(r"\d+", confidence_text).group())  # type: ignore
                 confidence_score = max(0, min(100, confidence_score))
             except Exception as e:
@@ -418,14 +459,14 @@ Important:
                 confidence_score = 50
 
             print(color_text("Response from planning verification:", COLOR_BLUE))
-            print(f"Analysis: {verification_res.get('analysis', '')}")
+            print(f"Analysis: {plan_dict.get('analysis', '')}")
             print(f"Confidence: {confidence_score}")
 
-            plannings.append((planning, confidence_score, example))
+            verified_plans.append((planning, confidence_score, example))
 
-        plannings.sort(key=lambda x: x[1], reverse=True)
+        verified_plans.sort(key=lambda x: x[1], reverse=True)
 
-        if not plannings:
+        if not verified_plans:
             print(
                 color_text("No valid plannings generated.", COLOR_RED),
                 file=sys.stderr,
@@ -438,13 +479,14 @@ Important:
         else:
             std_input_prompt = ""
 
-        for planning_with_ex in plannings:
-            planning, confidence, example = planning_with_ex
+        for planning_with_ex in verified_plans:
+            planning, _, example = planning_with_ex
 
             input_for_final_code_generation = [
                 {
                     "role": "user",
-                    "content": f"""Generate {self.language} code to solve the following problem based on the provided plan.
+                    "content": f"""
+Generate {self.language} code to solve the following problem based on the provided plan.
 # Problem:
 {self.data.get_prompt(item)}
 
@@ -468,7 +510,7 @@ Important:
 
 # Your Response:
 Generate only the {self.language} code. Do not include any explanations.
-""",
+""".strip(),
                 }
             ]
 
@@ -502,7 +544,30 @@ Generate only the {self.language} code. Do not include any explanations.
                 input_for_improving_code = [
                     {
                         "role": "user",
-                        "content": f"Given a competitive programming problem you have generated {self.language} code to solve the problem. But the generated code can not pass sample test cases. Improve your code to solve the problem correctly.\n{algorithm_prompt}\n## Problem to be solved:\n{self.data.get_prompt(item)}\n{response}\n## Failure Reason:\n{failure_reason}\n## Test Report:\n{test_log}\n## Modified Planning:\n## Let's think step by step to modify {self.language} Code for solving this problem.\n\n----------------\nImportant:\n{std_input_prompt}\n## Your response must contain the modified planning and then the {self.language} code inside ``` block to solve this problem.",
+                        "content": f"""
+Given a competitive programming problem you have generated {self.language} code to solve the problem. 
+But the generated code can not pass sample test cases. 
+Improve your code to solve the problem correctly.
+{algorithm_prompt}
+
+## Problem to be solved:
+{self.data.get_prompt(item)}
+{response}
+
+## Failure Reason:
+{failure_reason}
+## Test Report:
+{test_log}
+
+## Modified Planning:
+
+## Let's think step by step to modify {self.language} Code for solving this problem.
+
+----------------
+Important:
+{std_input_prompt}
+Your response must contain the modified planning and then the {self.language} code inside ``` block to solve this problem.
+""".strip(),
                     }
                 ]
 
