@@ -6,6 +6,14 @@ from promptings import (
     MapCoder,
     PACEcoding,
 )
+from promptings.ablation import (
+    PACEcodingD,
+    PACEcodingP,
+    PACEcodingPD,
+    PACEcodingR,
+    PACEcodingRD,
+    PACEcodingRP,
+)
 
 
 def normalize(prompting_name):
@@ -16,7 +24,19 @@ class PromptingFactory:
     @staticmethod
     def get_prompting_class(prompting_name):
         prompting = normalize(prompting_name)
-        if prompting in ["pacecoding", "pace"]:
+        if prompting == "r":
+            return PACEcodingR
+        elif prompting == "p":
+            return PACEcodingP
+        elif prompting == "d":
+            return PACEcodingD
+        elif prompting == "rp":
+            return PACEcodingRP
+        elif prompting == "rd":
+            return PACEcodingRD
+        elif prompting == "pd":
+            return PACEcodingPD
+        elif prompting in ["pacecoding", "pace"]:
             return PACEcoding
         elif prompting in ["mapcoder", "map"]:
             return MapCoder

@@ -6,7 +6,7 @@ from typing import Any
 from lxml import etree  # type: ignore
 
 # import tiktoken
-from .Base import BaseStrategy
+from ..Base import BaseStrategy
 
 mapping = {
     1: "one (01)",
@@ -167,142 +167,21 @@ class PACEcoding(BaseStrategy):
     def run_single_pass(self, item: dict):
         print("", flush=True)
 
-        input_kb_exemplars = [
-            {
-                "role": "user",
-                "content": f"""
-Given a problem, provide relevant problems and learn the relevant algorithms behind them. 
-You must identify the algorithms and explain them in a detailed tutorial including the algorithmic concepts, efficiency, and use cases.
+        pr_tok = 0
+        com_tok = 0
 
-# Problem:
-{self.data.get_prompt(item)}
-
-# Exemplars:
-Recall {mapping[self.k]} relevant and distinct problems (different from the given problem). 
-For each problem:
-1. Describe it concisely
-2. Generate pseudocode step by step to solve that problem
-3. Analyze and extract 1-3 key code generation techniques or algorithms used in the solution
-4. Generate a detailed planning to solve that problem that includes the identified techniques, algorithms and efficiency
-
-# Algorithm:
-
-----------------
-Important:
-Your response must follow the following xml format:
-
-<root>
-<problem>
-<description>
-# Describe the problem concisely.
-</description>
-<pseudocode>
-# Let's think step by step to solve this problem in pseudocode.
-</pseudocode>
-<techniques>
-# Extract 1-3 key code generation techniques and algorithms used in this solution.
-</techniques>
-<planning>
-# Detailed planning to solve this problem including the identified techniques, algorithms and efficiency.
-</planning>
-</problem>
-
-# Add more problems here...
-
-<algorithm>
-# Identify the most efficient algorithm (Brute-force, Dynamic Programming, Divide-and-conquer, Greedy, Backtracking, Recursive, Binary search, etc.) that can be used to solve the original problem.
-# Write a useful tutorial about the identified algorithm. Provide a high-level generic tutorial for solving this type of problem. Do not generate code.
-</algorithm>
-
-<learned_techniques>
-# Summarize the key code generation techniques learned from all the examples.
-</learned_techniques>
-</root>
-""".strip(),
-            },
-        ]
-
-        print(color_text("\n\n________________________", COLOR_BLUE))
-        print(color_text("Input for knowledge base and exemplars:", COLOR_BLUE))
-        print(input_kb_exemplars[0]["content"], flush=True)
-
-        response, pr_tok, com_tok = self.gpt_chat(processed_input=input_kb_exemplars)
-        item["api_calls"] = item.get("api_calls", 0) + 1
-
-        response = self.replace_tag(response, "algorithm")
-        response = self.replace_tag(response, "description")
-        response = self.replace_tag(response, "code")
-        response = self.replace_tag(response, "planning")
-        response = self.replace_tag(response, "techniques")
-        response = self.replace_tag(response, "learned_techniques")
-
-        print(color_text("\n\n________________________", COLOR_BLUE))
-        print(color_text("Response from knowledge base and exemplars:", COLOR_BLUE))
-        print(response, flush=True)
-
-        response = self.parse_xml(response)
-        if "error" in response:
-            print(
-                color_text(f"Error parsing XML: {response['error']}", COLOR_RED),
-                file=sys.stderr,
-                flush=True,
-            )
-            print(
-                color_text(f"Raw response: {response['raw']}", COLOR_RED),
-                file=sys.stderr,
-                flush=True,
-            )
-            return str(response), pr_tok, com_tok
-
-        problems = response.get("problem", [])
-        if not problems:
-            print(
-                color_text("Warning: No <problem> tag found in XML.", COLOR_RED),
-                file=sys.stderr,
-            )
-            return "no problems found in XML", pr_tok, com_tok
-        if not isinstance(problems, list):
-            problems = [problems]
-
-        algorithm_prompt = f"## Relevant Algorithm: {response.get('algorithm', '')}"
-        learned_techniques = f"## Learned Code Generation Techniques: {response.get('learned_techniques', '')}"
         sample_io_prompt = (
             f"## Sample Test cases: \n{self.get_sample_io_str(item['sample_io'])}\n"
         )
 
         plannings = []
-        for example_no, example in enumerate(problems, start=1):
-            if isinstance(example, str):
-                example = {
-                    "description": example,
-                    "code": "",
-                    "planning": "",
-                    "techniques": "",
-                }
-
-            example_problem = example.get("description", "")
-            example_planning = example.get("planning", "")
-            example_techniques = example.get("techniques", "")
-
+        for example_no in range(self.k):
             input_for_problem_planning = [
                 {
                     "role": "user",
                     "content": f"""
+Plan {mapping[example_no + 1]}:
 Given a competitive programming problem, generate one unique, detailed, step-by-step plan to solve it.
-# Example Problem:
-{example_problem}
-
-# Example Techniques:
-{example_techniques}
-
-# Example Planning:
-{example_planning}
-
-# Algorithm:
-{algorithm_prompt}
-
-# Learned Techniques:
-{learned_techniques}
 
 # Problem to Solve:
 {self.data.get_prompt(item)}
@@ -460,7 +339,7 @@ You must not assign any plan the same score as another plan such that there is a
             print(f"Analysis: {plan_dict.get('analysis', '')}")
             print(f"Confidence: {confidence_score}")
 
-            verified_plans.append((planning, confidence_score, example))
+            verified_plans.append((planning, confidence_score))
 
         verified_plans.sort(key=lambda x: x[1], reverse=True)
 
@@ -473,7 +352,7 @@ You must not assign any plan the same score as another plan such that there is a
             return "no plans generated", pr_tok, com_tok
 
         for planning_with_ex in verified_plans:
-            planning, _, example = planning_with_ex
+            planning, _ = planning_with_ex
 
             input_for_final_code_generation = [
                 {
@@ -488,12 +367,6 @@ Generate {self.language} code to solve the following problem based on the provid
 
 # Sample Test Cases:
 {sample_io_prompt}
-
-# Learned Techniques:
-{learned_techniques}
-
-# Algorithm:
-{algorithm_prompt}
 
 # Instructions:
 1. Implement the solution exactly as per the planning
@@ -540,11 +413,9 @@ Generate only the {self.language} code. Do not include any explanations.
 Given a competitive programming problem you have generated {self.language} code to solve the problem. 
 But the generated code can not pass sample test cases. 
 Improve your code to solve the problem correctly.
-{algorithm_prompt}
 
 ## Problem to be solved:
 {self.data.get_prompt(item)}
-{response}
 
 ## Failure Reason:
 {failure_reason}
