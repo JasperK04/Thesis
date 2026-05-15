@@ -6,7 +6,7 @@
 #SBATCH --time=12:00:00
 #SBATCH --mem=32G
 
-#SBATCH --array=0-49%8
+#SBATCH --array=0-52%8
 
 # Load modules
 module load Python/3.11
@@ -23,8 +23,8 @@ cd /home6/$USER/Thesis
 
 
 # Batch Assignemt
-TOTAL=500
-JOBS=50
+TOTAL=530
+JOBS=53
 
 CHUNK=$(( (TOTAL + JOBS - 1) / JOBS ))
 
