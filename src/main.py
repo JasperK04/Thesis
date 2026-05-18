@@ -7,6 +7,33 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser()
 
+STRATEGY_MAP = {
+    "direct": "Direct",
+    "dir": "Direct",
+    "mapcoder": "MapCoder",
+    "map": "MapCoder",
+    "map-coder": "MapCoder",
+    "pacecoding": "PACEcoding",
+    "pace-coding": "PACEcoding",
+    "pace": "PACEcoding",
+}
+
+MODEL_MAP = {
+    "qwen": "Qwen",
+    "qwen3.5": "Qwen",
+    "qwen-finetuned": "QwenFT",
+    "qwen3.5-finetuned": "QwenFT",
+    "qwen-ft": "QwenFT",
+    "qwenft": "QwenFT",
+    "gpt-4.1-mini": "GPT4",
+    "gpt-4.1": "GPT4",
+    "gpt4": "GPT4",
+    "gpt-5.4-nano": "GPT5",
+    "gpt-5.4": "GPT5",
+    "gpt5.4": "GPT5",
+    "gpt5": "GPT5",
+}
+
 parser.add_argument(
     "--dataset",
     type=str,
@@ -108,8 +135,8 @@ from promptings.PromptingFactory import PromptingFactory  # noqa: E402
 from results.Results import Results  # noqa: E402
 
 DATASET = args.dataset
-STRATEGY = args.strategy
-MODEL_NAME = args.model
+STRATEGY = STRATEGY_MAP[args.strategy.lower()] if args.strategy.lower() in STRATEGY_MAP else args.strategy
+MODEL_NAME = MODEL_MAP[args.model.lower()] if args.model.lower() in MODEL_MAP else args.model
 TEMPERATURE = args.temperature
 PASS_AT_K = args.pass_at_k
 LANGUAGE = args.language
