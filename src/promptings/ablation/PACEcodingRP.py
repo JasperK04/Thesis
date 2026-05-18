@@ -5,8 +5,10 @@ from typing import Any
 
 from lxml import etree  # type: ignore
 
+from challenge_datasets import APPSDataset
+
 # import tiktoken
-from .Base import BaseStrategy
+from ..Base import BaseStrategy
 
 mapping = {
     1: "one (01)",
@@ -472,6 +474,11 @@ You must not assign any plan the same score as another plan such that there is a
             )
             return "no plans generated", pr_tok, com_tok
 
+        if isinstance(self.data, APPSDataset):
+            std_input_prompt = "## Note: Strictly follow the input and output format. Take input from stdin and output to stdout. If writing a function, after the function definition, take input using `input()`, call the function, and print the result. Avoid extra print statements."
+        else:
+            std_input_prompt = ""
+
         for planning_with_ex in verified_plans:
             planning, _, example = planning_with_ex
 
@@ -499,6 +506,7 @@ Generate {self.language} code to solve the following problem based on the provid
 1. Implement the solution exactly as per the planning
 2. Add comments to explain key steps
 3. Handle edge cases appropriately
+4. {std_input_prompt}
 
 # Your Response:
 Generate only the {self.language} code. Do not include any explanations.
@@ -520,67 +528,8 @@ Generate only the {self.language} code. Do not include any explanations.
             print(color_text("Response from final code generation:", COLOR_BLUE))
             print(color_text(code, COLOR_YELLOW), flush=True)
 
-            passed = False
+            passed, _, _ = self.data.evaluate_sample_io(item, code, self.language)
 
-            for i in range(1, self.t + 1):
-                passed, test_log, failure_reason = self.data.evaluate_sample_io(
-                    item, code, self.language
-                )
-
-                if passed:
-                    break
-
-                print(
-                    color_text(f"Input for improving code generation: {i}", COLOR_BLUE)
-                )
-                input_for_improving_code = [
-                    {
-                        "role": "user",
-                        "content": f"""
-Given a competitive programming problem you have generated {self.language} code to solve the problem. 
-But the generated code can not pass sample test cases. 
-Improve your code to solve the problem correctly.
-{algorithm_prompt}
-
-## Problem to be solved:
-{self.data.get_prompt(item)}
-{response}
-
-## Failure Reason:
-{failure_reason}
-## Test Report:
-{test_log}
-
-## Modified Planning:
-
-## Let's think step by step to modify {self.language} Code for solving this problem.
-
-----------------
-Important:
-Your response must contain the modified planning and then the {self.language} code inside ``` block to solve this problem.
-""".strip(),
-                    }
-                ]
-
-                print(color_text("\n\n________________________", COLOR_BLUE))
-                print(color_text("Input for improving code generation:", COLOR_BLUE))
-                print(input_for_improving_code[0]["content"], flush=True)
-
-                response, pr_tok_1, com_tok_1 = self.gpt_chat(input_for_improving_code)
-                item["api_calls"] += 1
-                # time.sleep(1)
-
-                code = self.parse_code(response)
-                pr_tok += pr_tok_1
-                com_tok += com_tok_1
-
-                print(color_text("\n\n________________________", COLOR_BLUE))
-                print(
-                    color_text("Response from improving code generation:", COLOR_BLUE)
-                )
-                print(response, flush=True)
-
-            # got a code that passed all sample test cases
             if passed:
                 break
 
