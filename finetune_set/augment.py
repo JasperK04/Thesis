@@ -9,11 +9,40 @@ CODE_DATASET = SCRIPT_DIR / "raw_solutions.jsonl"
 AOC_DATASET = SCRIPT_DIR.parent / "data" / "AoC" / "aoc.jsonl"
 OUTPUT_FILE = SCRIPT_DIR / "train.jsonl"
 
-EFFICIENCY_INSTRUCTION = (
-    "Solve this Advent of Code problem in Python using a "
-    "computationally efficient and scalable approach. "
-    "Avoid unnecessary brute force solutions.\n\n"
-)
+EFFICIENCY_INSTRUCTION = """
+    Solve this problem using the most efficient algorithm available.
+    prioritize computationally efficient and scalable solutions.
+    Avoid unnecessary brute force implementations.
+"""
+
+
+def generate_prompt(problem: dict) -> str:
+    """Generate a prompt for solving an Advent of Code problem."""
+
+    sample_io_prompt = "\n".join(
+        f"Input: {sample['input']}\nOutput: {sample['output']}"
+        for sample in problem["sample_io"]
+    )
+
+    prompt = f"""
+Generate Python code to solve the following problem.
+# Problem:
+{problem["description"]}
+
+# Sample Test Cases:
+{sample_io_prompt}
+
+# Algorithm:
+{EFFICIENCY_INSTRUCTION}
+
+# Instructions:
+1. Add comments to explain key steps
+2. Handle edge cases appropriately
+
+# Your Response:
+Generate only the Python code. Do not include any explanations.
+""".strip()
+    return prompt
 
 
 def load_aoc_problems():
@@ -42,19 +71,23 @@ def load_aoc_problems():
     return problems
 
 
-def build_prompt(problem_description):
+def build_training_prompt(problem: dict, code: str) -> str:
     """Build the training prompt prefix for a single AoC problem.
 
     Args:
-        problem_description (str): Full problem statement text.
+        problem (dict): The full problem statement dictionary.
+        code (str): The Python code to be evaluated.
 
     Returns:
         str: A model chat prompt with the efficiency instruction prepended and
         formatted using the expected chat tokens.
     """
-    augmented_problem = EFFICIENCY_INSTRUCTION + problem_description
+    input_prompt = generate_prompt(problem)
 
-    return f"<|im_start|>user\n{augmented_problem}\n<|im_end|>\n<|im_start|>assistant\n"
+    return f"""
+    <|im_start|>user\n{input_prompt}\n<|im_end|>
+    <|im_start|>assistant\n```python\n{code}\n```<|im_end|>
+    """.strip()
 
 
 def has_explicit_part_markers(code):
@@ -351,12 +384,10 @@ def main():
 
             problem = problems[key]
 
-            prompt = build_prompt(problem["description"])
-
-            full_text = prompt + entry["code"] + "\n<|im_end|>"
+            full_prompt = build_training_prompt(problem, entry["code"])
 
             output_entry = {
-                "text": full_text,
+                "text": full_prompt,
                 "metadata": {
                     "year": year,
                     "day": day,
