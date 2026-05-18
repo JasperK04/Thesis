@@ -45,4 +45,4 @@
   - First succesfull experiment took 56 minutes to finish for a single problem. therefore i will be downgrading to Qwen3.5-9B instead of Qwen3.6-27B
 
 - **Habrok is down**
-  - Habrok experienced an network issue causing the cluster to go down for over 24 hours
+  - Habrok experienced an network issue causing the cluster to go down for the last 3 days before the drafts deadline. was still down for several days after.
