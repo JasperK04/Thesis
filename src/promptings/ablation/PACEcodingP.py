@@ -215,7 +215,7 @@ Important:
             print(input_for_problem_planning[0]["content"], flush=True)
 
             planning, pr_tok_1, com_tok_1 = self.gpt_chat(input_for_problem_planning)
-            item["api_calls"] += 1
+            item["api_calls"] = item.get("api_calls", 0) + 1
             pr_tok += pr_tok_1
             com_tok += com_tok_1
 

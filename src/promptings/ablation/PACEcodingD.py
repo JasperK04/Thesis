@@ -201,7 +201,7 @@ Generate only the {self.language} code. Do not include any explanations.
         print(input_for_final_code_generation[0]["content"], flush=True)
 
         code, pr_tok_1, com_tok_1 = self.gpt_chat(input_for_final_code_generation)
-        item["api_calls"] += 1
+        item["api_calls"] = item.get("api_calls", 0) + 1
         code = self.parse_code(code)
         pr_tok += pr_tok_1
         com_tok += com_tok_1
