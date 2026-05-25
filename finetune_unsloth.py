@@ -1,9 +1,10 @@
+import unsloth  # noqa: F401
 from datasets import load_dataset
 from transformers import TrainingArguments
-from trl.trainer.sft_trainer import SFTTrainer
+from trl import SFTTrainer
 from unsloth import FastLanguageModel
 
-MODEL_NAME = "Qwen/Qwen3-9B"
+MODEL_NAME = "Qwen/Qwen3.5-9B"
 
 MAX_SEQ_LENGTH = 4096
 
