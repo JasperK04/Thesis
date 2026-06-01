@@ -129,7 +129,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # Set the executor timeout as an environment variable so that it can be accessed later.
-os.environ["EXECUTOR_TIMEOUT"] = args.limit
+os.environ["EXECUTOR_TIMEOUT"] = str(args.limit)
 
 # Respect the local execution flag as an environment variable before importing
 if args.local:
