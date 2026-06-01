@@ -108,6 +108,12 @@ parser.add_argument(
     help="Run code execution locally via subprocess instead of posting to an executor server",
 )
 parser.add_argument(
+    "--limit",
+    type=float,
+    default=5,
+    help="Maximum evaluation time in seconds",
+)
+parser.add_argument(
     "--start",
     type=int,
     default=0,
@@ -122,6 +128,9 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+# Set the executor timeout as an environment variable so that it can be accessed later.
+os.environ["EXECUTOR_TIMEOUT"] = args.limit
+
 # Respect the local execution flag as an environment variable before importing
 if args.local:
     os.environ["EXECUTOR_LOCAL"] = "1"
@@ -135,8 +144,14 @@ from promptings.PromptingFactory import PromptingFactory  # noqa: E402
 from results.Results import Results  # noqa: E402
 
 DATASET = args.dataset
-STRATEGY = STRATEGY_MAP[args.strategy.lower()] if args.strategy.lower() in STRATEGY_MAP else args.strategy
-MODEL_NAME = MODEL_MAP[args.model.lower()] if args.model.lower() in MODEL_MAP else args.model
+STRATEGY = (
+    STRATEGY_MAP[args.strategy.lower()]
+    if args.strategy.lower() in STRATEGY_MAP
+    else args.strategy
+)
+MODEL_NAME = (
+    MODEL_MAP[args.model.lower()] if args.model.lower() in MODEL_MAP else args.model
+)
 TEMPERATURE = args.temperature
 PASS_AT_K = args.pass_at_k
 LANGUAGE = args.language

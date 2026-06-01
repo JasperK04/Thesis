@@ -6,7 +6,7 @@ from .exec_outcome import ExecOutcome
 
 
 def _run_python_source(
-    source_code: str, stdin_data: str, timeout: int
+    source_code: str, stdin_data: str, timeout: float
 ) -> tuple[int, str, str, bool]:
     # Write source to temp file then execute with python
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as tf:
@@ -47,7 +47,7 @@ def execute_code_locally(
     if not lang_norm.startswith("python"):
         raise ValueError(f"Local executor only supports Python3: got {language}")
 
-    timeout = 5
+    timeout = float(os.getenv("EXECUTOR_TIMEOUT", 5))
 
     results = []
     for test in unittests:
