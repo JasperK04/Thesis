@@ -1,6 +1,4 @@
 # Copyright (c) 2024 Md. Ashraful Islam — Licensed under the MIT License. See LICENSE.
-# Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE SECOND.
-
 import argparse
 import os
 from datetime import datetime

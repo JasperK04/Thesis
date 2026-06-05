@@ -1,4 +1,3 @@
-# Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE-SECOND.
 import re
 
 from models.OpenAI import GPT4, GPT5

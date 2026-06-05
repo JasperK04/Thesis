@@ -1,4 +1,3 @@
-# Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE SECOND.
 import os
 import re
 

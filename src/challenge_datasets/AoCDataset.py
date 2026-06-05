@@ -1,4 +1,3 @@
-# Copyright (c) 2026 Jasper Kleine — Licensed under the MIT License. See LICENSE SECOND.
 from constants.paths import AOC_DATA_PATH
 from evaluations.evaluate import contest_evaluate, contest_evaluate_public_tests
 
