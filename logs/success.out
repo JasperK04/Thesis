@@ -1,0 +1,1532 @@
+#########################
+Running start GPT5-PACEcoding-AoC-Python3-0.0-1-207-208, Time: 2026-05-28 19:49:46.498366
+##########################
+
+
+[34m
+
+________________________[0m
+[34mInput for knowledge base and exemplars:[0m
+Given a problem, provide relevant problems and learn the relevant algorithms behind them. 
+You must identify the algorithms and explain them in a detailed tutorial including the algorithmic concepts, efficiency, and use cases.
+
+# Problem:
+--- Day 4: Secure Container ---
+You arrive at the Venus fuel depot only to discover it's protected by a password.  The Elves had written the password on a sticky note, but someone threw it out .
+However, they do remember a few key facts about the password:
+- It is a six-digit number.
+- The value is within the range given in your puzzle input.
+- Two adjacent digits are the same (like 22 in 1 22 345 ).
+- Going from left to right, the digits never decrease ; they only ever increase or stay the same (like 111123 or 135679 ).
+Other than the range rule, the following are true:
+- 111111 meets these criteria (double 11 , never decreases).
+- 2234 50 does not meet these criteria (decreasing pair of digits 50 ).
+- 123789 does not meet these criteria (no double).
+How many different passwords within the range given in your puzzle input meet these criteria?--- Part Two ---
+An Elf just remembered one more important detail: the two adjacent matching digits are not part of a larger group of matching digits .
+Given this additional criterion, but still ignoring the range rule, the following are now true:
+- 112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+- 123 444 no longer meets the criteria (the repeated 44 is part of a larger group of 444 ).
+- 111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22 ).
+How many different passwords within the range given in your puzzle input meet all of the criteria?
+
+Sample Input Format:
+111111-111111
+Sample Output Format:
+0
+
+-------
+Important: You must follow the input output format. Input should be taken from standard input and output should be given to standard output.
+Note: If you are writing a function then after the function definition take input from using `input()` function, call the function with specified parameters and finally print the output of the function.
+
+# Exemplars:
+Recall three (03) relevant and distinct problems (different from the given problem). 
+For each problem:
+1. Describe it concisely
+2. Generate pseudocode step by step to solve that problem
+3. Analyze and extract 1-3 key code generation techniques or algorithms used in the solution
+4. Generate a detailed planning to solve that problem that includes the identified techniques, algorithms and efficiency
+
+# Algorithm:
+
+----------------
+Important:
+Your response must follow the following xml format:
+
+<root>
+<problem>
+<description>
+# Describe the problem concisely.
+</description>
+<pseudocode>
+# Let's think step by step to solve this problem in pseudocode.
+</pseudocode>
+<techniques>
+# Extract 1-3 key code generation techniques and algorithms used in this solution.
+</techniques>
+<planning>
+# Detailed planning to solve this problem including the identified techniques, algorithms and efficiency.
+</planning>
+</problem>
+
+# Add more problems here...
+
+<algorithm>
+# Identify the most efficient algorithm (Brute-force, Dynamic Programming, Divide-and-conquer, Greedy, Backtracking, Recursive, Binary search, etc.) that can be used to solve the original problem.
+# Write a useful tutorial about the identified algorithm. Provide a high-level generic tutorial for solving this type of problem. Do not generate code.
+</algorithm>
+
+<learned_techniques>
+# Summarize the key code generation techniques learned from all the examples.
+</learned_techniques>
+</root>
+[34m
+
+________________________[0m
+[34mResponse from knowledge base and exemplars:[0m
+<root>
+<problem>
+<description><![CDATA[
+Count how many 6-digit numbers in a given inclusive range satisfy digit constraints: (1) digits never decrease left-to-right, (2) there exists at least one pair of adjacent equal digits (Part 1), and (3) in Part 2, that adjacent equal pair must belong to a group of exactly two equal digits (not part of a larger group).
+]]></description>
+<pseudocode>
+1. Parse input as a string "L-R"; convert to integers low=L, high=R.
+2. Initialize answer = 0.
+3. For each number x from low to high (brute force baseline):
+   a. Convert x to a 6-digit array digits[0..5] (with leading zeros not needed because range is 6-digit).
+   b. Check non-decreasing property:
+      - If any digits[i] > digits[i+1], reject x.
+   c. Part 1 check (adjacent duplicate exists):
+      - If there exists i with digits[i] == digits[i+1], mark hasDouble=true else false.
+      - If hasDouble is true, accept x.
+   d. Part 2 check (exactly-two group exists):
+      - Compute run lengths of equal digits:
+        i=0
+        while i<6:
+          j=i
+          while j<6 and digits[j]==digits[i]: j++
+          runLen = j-i
+          record whether runLen==2
+          i=j
+      - Accept x only if any runLen==2.
+   e. If accepted, answer++.
+4. Output answer.
+</pseudocode>
+<techniques><![CDATA[
+- Digit DP / state constraints (conceptual): treat numbers as digit sequences with monotonic constraint and local/group constraints.
+- Run-length encoding (RLE) on digits to detect “exactly two” groups efficiently.
+- Brute-force with pruning (early rejection): check non-decreasing first to quickly discard most candidates.
+]]></techniques>
+<planning><![CDATA[
+1. Understand constraints:
+   - Non-decreasing digits implies the sequence is monotone; this can be checked in O(6).
+   - Adjacent equality and “exactly two” are local/group properties; both can be derived from run lengths.
+2. Choose approach:
+   - For simplicity, brute force over the range is acceptable if the range is not astronomically large; still, implement early pruning.
+   - For a more algorithmic approach, use digit generation (construct only non-decreasing sequences) to reduce search space (optional).
+3. Implement digit extraction:
+   - Convert each candidate number to a 6-digit list.
+4. Implement monotonic check:
+   - Single pass i=0..4: if digits[i] > digits[i+1], reject immediately.
+5. Implement Part 1 detection:
+   - Single pass i=0..4: if digits[i]==digits[i+1], accept condition.
+6. Implement Part 2 detection:
+   - Run-length encode:
+     - Walk through digits, count consecutive equal digits.
+     - If any run length equals 2, accept.
+7. Complexity:
+   - Per candidate: O(6) time, O(1) extra space.
+   - Total: O((high-low+1)*6) time for brute force.
+   - With pruning, many candidates are rejected quickly.
+]]></planning>
+</problem>
+
+<problem>
+<description><![CDATA[
+Given a range [L, R], count numbers whose digits are non-decreasing and contain at least one adjacent equal pair (similar to Part 1), ignoring the “exactly two” restriction.
+]]></description>
+<pseudocode>
+1. Read input "L-R"; set low, high.
+2. answer = 0
+3. For x in [low..high]:
+   a. digits = toDigits6(x)
+   b. if not nonDecreasing(digits): continue
+   c. if hasAdjacentEqual(digits): answer++
+4. Print answer
+5. Helper nonDecreasing(digits):
+   - for i in 0..4:
+       if digits[i] > digits[i+1]: return false
+   - return true
+6. Helper hasAdjacentEqual(digits):
+   - for i in 0..4:
+       if digits[i] == digits[i+1]: return true
+   - return false
+</pseudocode>
+<techniques><![CDATA[
+- Early pruning with monotonic check.
+- Linear scan for adjacent equality.
+- Constant-size digit processing (fixed length 6).
+]]></techniques>
+<planning><![CDATA[
+1. Reduce the problem to two independent checks:
+   - Monotonicity (global constraint).
+   - Existence of adjacent duplicate (local constraint).
+2. Implement monotonicity first:
+   - It’s cheap and rejects quickly.
+3. Implement adjacent duplicate check:
+   - Another cheap linear scan.
+4. Complexity:
+   - O(6) per number, O(1) space.
+   - Total O(rangeSize) time.
+5. Use cases:
+   - Counting constrained digit patterns in numeric ranges.
+   - Baseline approach before optimizing with digit generation or digit DP.
+]]></planning>
+</problem>
+
+<problem>
+<description><![CDATA[
+Count numbers in [L, R] where the multiset of digits satisfies a constraint (e.g., exactly k occurrences of some digit) while digits are non-decreasing. This generalizes the “group length” idea using run-length or frequency counting.
+]]></description>
+<pseudocode>
+1. Read input "L-R"; low, high.
+2. answer = 0
+3. For x in [low..high]:
+   a. digits = toDigits6(x)
+   b. if not nonDecreasing(digits): continue
+   c. freq = array[10]=0
+   d. for d in digits: freq[d]++
+   e. if exists digit t such that freq[t] == k:
+        answer++
+4. Print answer
+5. Helper nonDecreasing(digits):
+   - for i in 0..4:
+       if digits[i] > digits[i+1]: return false
+   - return true
+</pseudocode>
+<techniques><![CDATA[
+- Frequency counting (histogram) over digits.
+- Separation of concerns: monotonic constraint + digit multiset constraint.
+- Fixed-size arrays for O(1) memory and O(6) time.
+]]></techniques>
+<planning><![CDATA[
+1. Decide whether the constraint is about:
+   - Adjacent groups (use run-length encoding), or
+   - Total counts of digits (use frequency histogram).
+2. For this generalized problem, use frequency histogram:
+   - It’s straightforward and robust.
+3. Keep monotonic check as a fast filter.
+4. Complexity:
+   - O(6) per number, O(1) space.
+5. Use cases:
+   - Variants of digit puzzles where constraints depend on counts rather than adjacency.
+   - Useful when “exactly two” is interpreted as total occurrences rather than a contiguous run.
+]]></planning>
+</problem>
+
+<algorithm><![CDATA[
+Most efficient algorithm to use for the original problem: Digit generation with pruning (construct only non-decreasing digit sequences) + run-length tracking.
+]]></algorithm>
+
+<algorithm_tutorial>
+A generic tutorial for this type of “digit constraint counting in a range” problem:
+
+1. Key observation (monotonic constraint):
+   - If digits never decrease, then the sequence is monotone non-decreasing.
+   - That means you can generate valid digit sequences directly instead of checking every number in the range.
+
+2. State representation:
+   - Build the number left-to-right.
+   - Maintain:
+     - position idx (0..5),
+     - last digit chosen (to enforce non-decreasing),
+     - run-length information (for Part 2) or a boolean “has adjacent equal” (for Part 1).
+
+3. Backtracking / DFS generation:
+   - At each position idx, choose the next digit d such that d >= lastDigit.
+   - This prunes huge portions of the search space because decreasing sequences are never generated.
+
+4. Handling Part 1 vs Part 2:
+   - Part 1: track whether any adjacent equal occurs.
+     - When you choose d == lastDigit, you’ve formed an adjacent pair.
+   - Part 2: track run lengths of equal digits.
+     - When the digit changes, finalize the previous run length.
+     - Accept only if at least one run length equals exactly 2.
+
+5. Range filtering:
+   - Because you generate digit sequences, you can:
+     - Either generate all monotone sequences of length 6 and then count those whose numeric value lies in [L, R],
+     - Or incorporate tight bounds (more complex) by tracking whether the prefix is already above/below the bounds.
+   - For simplicity, generate all monotone sequences (there are not many for length 6) and then filter by numeric range.
+
+6. Efficiency:
+   - Brute force: O(rangeSize * 6).
+   - Digit generation:
+     - Number of non-decreasing sequences of length 6 over digits 0..9 is C(6+10-1, 6)=C(15,6)=5005 (small).
+     - Each sequence is processed in O(6).
+     - Total work is ~O(5005 * 6), effectively constant for this puzzle size.
+
+7. Use cases:
+   - Counting numbers with monotonic digit constraints.
+   - Problems where adjacency/group properties can be tracked incrementally during construction.
+   - Any “fixed-length digit DP” variant where constraints are local or can be summarized by small state.
+
+</algorithm_tutorial>
+
+<learned_techniques><![CDATA[
+- Run-length encoding (RLE) on digits to detect “exactly two adjacent digits” groups efficiently.
+- Early pruning by checking the monotonic (non-decreasing) constraint before more expensive checks.
+- Digit sequence generation/backtracking under monotonic constraints to drastically reduce the search space compared to brute force.
+]]></learned_techniques>
+</root>
+[33mParsed XML to dict:
+{
+  "root": {
+    "problem": [
+      {
+        "description": "\nCount how many 6-digit numbers in a given inclusive range satisfy digit constraints: (1) digits never decrease left-to-right, (2) there exists at least one pair of adjacent equal digits (Part 1), and (3) in Part 2, that adjacent equal pair must belong to a group of exactly two equal digits (not part of a larger group).\n",
+        "pseudocode": "\n1. Parse input as a string \"L-R\"; convert to integers low=L, high=R.\n2. Initialize answer = 0.\n3. For each number x from low to high (brute force baseline):\n   a. Convert x to a 6-digit array digits[0..5] (with leading zeros not needed because range is 6-digit).\n   b. Check non-decreasing property:\n      - If any digits[i] > digits[i+1], reject x.\n   c. Part 1 check (adjacent duplicate exists):\n      - If there exists i with digits[i] == digits[i+1], mark hasDouble=true else false.\n      - If hasDouble is true, accept x.\n   d. Part 2 check (exactly-two group exists):\n      - Compute run lengths of equal digits:\n        i=0\n        while i6:\n          j=i\n          while j6 and digits[j]==digits[i]: j++\n          runLen = j-i\n          record whether runLen==2\n          i=j\n      - Accept x only if any runLen==2.\n   e. If accepted, answer++.\n4. Output answer.\n",
+        "techniques": "\n- Digit DP / state constraints (conceptual): treat numbers as digit sequences with monotonic constraint and local/group constraints.\n- Run-length encoding (RLE) on digits to detect \u201cexactly two\u201d groups efficiently.\n- Brute-force with pruning (early rejection): check non-decreasing first to quickly discard most candidates.\n",
+        "planning": "\n1. Understand constraints:\n   - Non-decreasing digits implies the sequence is monotone; this can be checked in O(6).\n   - Adjacent equality and \u201cexactly two\u201d are local/group properties; both can be derived from run lengths.\n2. Choose approach:\n   - For simplicity, brute force over the range is acceptable if the range is not astronomically large; still, implement early pruning.\n   - For a more algorithmic approach, use digit generation (construct only non-decreasing sequences) to reduce search space (optional).\n3. Implement digit extraction:\n   - Convert each candidate number to a 6-digit list.\n4. Implement monotonic check:\n   - Single pass i=0..4: if digits[i] > digits[i+1], reject immediately.\n5. Implement Part 1 detection:\n   - Single pass i=0..4: if digits[i]==digits[i+1], accept condition.\n6. Implement Part 2 detection:\n   - Run-length encode:\n     - Walk through digits, count consecutive equal digits.\n     - If any run length equals 2, accept.\n7. Complexity:\n   - Per candidate: O(6) time, O(1) extra space.\n   - Total: O((high-low+1)*6) time for brute force.\n   - With pruning, many candidates are rejected quickly.\n"
+      },
+      {
+        "description": "\nGiven a range [L, R], count numbers whose digits are non-decreasing and contain at least one adjacent equal pair (similar to Part 1), ignoring the \u201cexactly two\u201d restriction.\n",
+        "pseudocode": "\n1. Read input \"L-R\"; set low, high.\n2. answer = 0\n3. For x in [low..high]:\n   a. digits = toDigits6(x)\n   b. if not nonDecreasing(digits): continue\n   c. if hasAdjacentEqual(digits): answer++\n4. Print answer\n5. Helper nonDecreasing(digits):\n   - for i in 0..4:\n       if digits[i] > digits[i+1]: return false\n   - return true\n6. Helper hasAdjacentEqual(digits):\n   - for i in 0..4:\n       if digits[i] == digits[i+1]: return true\n   - return false\n",
+        "techniques": "\n- Early pruning with monotonic check.\n- Linear scan for adjacent equality.\n- Constant-size digit processing (fixed length 6).\n",
+        "planning": "\n1. Reduce the problem to two independent checks:\n   - Monotonicity (global constraint).\n   - Existence of adjacent duplicate (local constraint).\n2. Implement monotonicity first:\n   - It\u2019s cheap and rejects quickly.\n3. Implement adjacent duplicate check:\n   - Another cheap linear scan.\n4. Complexity:\n   - O(6) per number, O(1) space.\n   - Total O(rangeSize) time.\n5. Use cases:\n   - Counting constrained digit patterns in numeric ranges.\n   - Baseline approach before optimizing with digit generation or digit DP.\n"
+      },
+      {
+        "description": "\nCount numbers in [L, R] where the multiset of digits satisfies a constraint (e.g., exactly k occurrences of some digit) while digits are non-decreasing. This generalizes the \u201cgroup length\u201d idea using run-length or frequency counting.\n",
+        "pseudocode": "\n1. Read input \"L-R\"; low, high.\n2. answer = 0\n3. For x in [low..high]:\n   a. digits = toDigits6(x)\n   b. if not nonDecreasing(digits): continue\n   c. freq = array[10]=0\n   d. for d in digits: freq[d]++\n   e. if exists digit t such that freq[t] == k:\n        answer++\n4. Print answer\n5. Helper nonDecreasing(digits):\n   - for i in 0..4:\n       if digits[i] > digits[i+1]: return false\n   - return true\n",
+        "techniques": "\n- Frequency counting (histogram) over digits.\n- Separation of concerns: monotonic constraint + digit multiset constraint.\n- Fixed-size arrays for O(1) memory and O(6) time.\n",
+        "planning": "\n1. Decide whether the constraint is about:\n   - Adjacent groups (use run-length encoding), or\n   - Total counts of digits (use frequency histogram).\n2. For this generalized problem, use frequency histogram:\n   - It\u2019s straightforward and robust.\n3. Keep monotonic check as a fast filter.\n4. Complexity:\n   - O(6) per number, O(1) space.\n5. Use cases:\n   - Variants of digit puzzles where constraints depend on counts rather than adjacency.\n   - Useful when \u201cexactly two\u201d is interpreted as total occurrences rather than a contiguous run.\n"
+      }
+    ],
+    "algorithm": "\nMost efficient algorithm to use for the original problem: Digit generation with pruning (construct only non-decreasing digit sequences) + run-length tracking.\n",
+    "algorithm_tutorial": "\nA generic tutorial for this type of \u201cdigit constraint counting in a range\u201d problem:\n\n1. Key observation (monotonic constraint):\n   - If digits never decrease, then the sequence is monotone non-decreasing.\n   - That means you can generate valid digit sequences directly instead of checking every number in the range.\n\n2. State representation:\n   - Build the number left-to-right.\n   - Maintain:\n     - position idx (0..5),\n     - last digit chosen (to enforce non-decreasing),\n     - run-length information (for Part 2) or a boolean \u201chas adjacent equal\u201d (for Part 1).\n\n3. Backtracking / DFS generation:\n   - At each position idx, choose the next digit d such that d >= lastDigit.\n   - This prunes huge portions of the search space because decreasing sequences are never generated.\n\n4. Handling Part 1 vs Part 2:\n   - Part 1: track whether any adjacent equal occurs.\n     - When you choose d == lastDigit, you\u2019ve formed an adjacent pair.\n   - Part 2: track run lengths of equal digits.\n     - When the digit changes, finalize the previous run length.\n     - Accept only if at least one run length equals exactly 2.\n\n5. Range filtering:\n   - Because you generate digit sequences, you can:\n     - Either generate all monotone sequences of length 6 and then count those whose numeric value lies in [L, R],\n     - Or incorporate tight bounds (more complex) by tracking whether the prefix is already above/below the bounds.\n   - For simplicity, generate all monotone sequences (there are not many for length 6) and then filter by numeric range.\n\n6. Efficiency:\n   - Brute force: O(rangeSize * 6).\n   - Digit generation:\n     - Number of non-decreasing sequences of length 6 over digits 0..9 is C(6+10-1, 6)=C(15,6)=5005 (small).\n     - Each sequence is processed in O(6).\n     - Total work is ~O(5005 * 6), effectively constant for this puzzle size.\n\n7. Use cases:\n   - Counting numbers with monotonic digit constraints.\n   - Problems where adjacency/group properties can be tracked incrementally during construction.\n   - Any \u201cfixed-length digit DP\u201d variant where constraints are local or can be summarized by small state.\n\n",
+    "learned_techniques": "\n- Run-length encoding (RLE) on digits to detect \u201cexactly two adjacent digits\u201d groups efficiently.\n- Early pruning by checking the monotonic (non-decreasing) constraint before more expensive checks.\n- Digit sequence generation/backtracking under monotonic constraints to drastically reduce the search space compared to brute force.\n"
+  }
+}[0m
+[34m
+
+________________________[0m
+[34mInput for our problem planning using example: 1:[0m
+Given a competitive programming problem, generate one unique, detailed, step-by-step plan to solve it.
+# Example Problem:
+
+Count how many 6-digit numbers in a given inclusive range satisfy digit constraints: (1) digits never decrease left-to-right, (2) there exists at least one pair of adjacent equal digits (Part 1), and (3) in Part 2, that adjacent equal pair must belong to a group of exactly two equal digits (not part of a larger group).
+
+
+# Example Techniques:
+
+- Digit DP / state constraints (conceptual): treat numbers as digit sequences with monotonic constraint and local/group constraints.
+- Run-length encoding (RLE) on digits to detect “exactly two” groups efficiently.
+- Brute-force with pruning (early rejection): check non-decreasing first to quickly discard most candidates.
+
+
+# Example Planning:
+
+1. Understand constraints:
+   - Non-decreasing digits implies the sequence is monotone; this can be checked in O(6).
+   - Adjacent equality and “exactly two” are local/group properties; both can be derived from run lengths.
+2. Choose approach:
+   - For simplicity, brute force over the range is acceptable if the range is not astronomically large; still, implement early pruning.
+   - For a more algorithmic approach, use digit generation (construct only non-decreasing sequences) to reduce search space (optional).
+3. Implement digit extraction:
+   - Convert each candidate number to a 6-digit list.
+4. Implement monotonic check:
+   - Single pass i=0..4: if digits[i] > digits[i+1], reject immediately.
+5. Implement Part 1 detection:
+   - Single pass i=0..4: if digits[i]==digits[i+1], accept condition.
+6. Implement Part 2 detection:
+   - Run-length encode:
+     - Walk through digits, count consecutive equal digits.
+     - If any run length equals 2, accept.
+7. Complexity:
+   - Per candidate: O(6) time, O(1) extra space.
+   - Total: O((high-low+1)*6) time for brute force.
+   - With pruning, many candidates are rejected quickly.
+
+
+# Algorithm:
+## Relevant Algorithm: 
+Most efficient algorithm to use for the original problem: Digit generation with pruning (construct only non-decreasing digit sequences) + run-length tracking.
+
+
+# Learned Techniques:
+## Learned Code Generation Techniques: 
+- Run-length encoding (RLE) on digits to detect “exactly two adjacent digits” groups efficiently.
+- Early pruning by checking the monotonic (non-decreasing) constraint before more expensive checks.
+- Digit sequence generation/backtracking under monotonic constraints to drastically reduce the search space compared to brute force.
+
+
+# Problem to Solve:
+--- Day 4: Secure Container ---
+You arrive at the Venus fuel depot only to discover it's protected by a password.  The Elves had written the password on a sticky note, but someone threw it out .
+However, they do remember a few key facts about the password:
+- It is a six-digit number.
+- The value is within the range given in your puzzle input.
+- Two adjacent digits are the same (like 22 in 1 22 345 ).
+- Going from left to right, the digits never decrease ; they only ever increase or stay the same (like 111123 or 135679 ).
+Other than the range rule, the following are true:
+- 111111 meets these criteria (double 11 , never decreases).
+- 2234 50 does not meet these criteria (decreasing pair of digits 50 ).
+- 123789 does not meet these criteria (no double).
+How many different passwords within the range given in your puzzle input meet these criteria?--- Part Two ---
+An Elf just remembered one more important detail: the two adjacent matching digits are not part of a larger group of matching digits .
+Given this additional criterion, but still ignoring the range rule, the following are now true:
+- 112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+- 123 444 no longer meets the criteria (the repeated 44 is part of a larger group of 444 ).
+- 111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22 ).
+How many different passwords within the range given in your puzzle input meet all of the criteria?
+
+Sample Input Format:
+111111-111111
+Sample Output Format:
+0
+
+-------
+Important: You must follow the input output format. Input should be taken from standard input and output should be given to standard output.
+Note: If you are writing a function then after the function definition take input from using `input()` function, call the function with specified parameters and finally print the output of the function.
+
+# Sample Test Cases:
+## Sample Test cases: 
+Input:
+111111-111111
+Expected output:
+0
+Input:
+223450-223450
+Expected output:
+0
+Input:
+123789-123789
+Expected output:
+0
+Input:
+112233-112233
+Expected output:
+1
+Input:
+123444-123444
+Expected output:
+0
+Input:
+111122-111122
+Expected output:
+1
+
+
+# Detailed Planning:
+Create a detailed, step-by-step plan to solve the problem. Structure your plan as:
+1. Step 1: [Description of first step]
+2. Step 2: [Description of second step]
+...
+n. Step n: [Description of final step]
+
+Important: 
+- Be specific and concrete in each step
+- Consider edge cases and input/output handling
+- Include time and space complexity considerations
+- Do not generate code, only the planning
+[34m
+
+________________________[0m
+[34mResponse from our problem planning:[0m
+1. **Parse input and extract bounds**
+   - Read a single line from standard input in the form `low-high`.
+   - Split on `-` and convert both parts to integers: `low`, `high`.
+   - Ensure `low <= high` (the problem guarantees this, but it’s safe to assume).
+
+2. **Choose the core approach: generate only non-decreasing digit sequences**
+   - Instead of checking every number in `[low, high]`, construct valid 6-digit digit sequences where digits never decrease left-to-right.
+   - This reduces the search space dramatically because the monotonic constraint is always satisfied by construction.
+   - You will still filter by the numeric range at the end (or during construction).
+
+3. **Set up a digit-generation/backtracking structure**
+   - Build digits left-to-right with a recursive (or iterative) process:
+     - Maintain:
+       - `pos` = current index (0 to 5)
+       - `prev_digit` = last chosen digit (to enforce non-decreasing)
+       - `digits` (or just the last digit and run-length info)
+   - At each position, choose the next digit `d` such that `d >= prev_digit` and `d` is in `[0..9]`.
+
+4. **Track run-lengths to support Part Two (“exactly two”)**
+   - Part Two requires: there exists at least one group of **exactly two** equal adjacent digits.
+   - While generating digits, track the current run:
+     - `current_digit` (the digit being repeated)
+     - `run_len` (length of the current run)
+   - When you append a new digit:
+     - If it equals `current_digit`, increment `run_len`.
+     - If it differs:
+       - The previous run is now “closed”; if `run_len == 2`, mark `has_exact_pair = True`.
+       - Start a new run with `run_len = 1` and update `current_digit`.
+
+5. **Handle the final run at the end of the 6 digits**
+   - When `pos == 6` (you’ve chosen all 6 digits):
+     - Close the last run similarly:
+       - If `run_len == 2`, set `has_exact_pair = True`.
+     - Now you know whether the sequence satisfies the “exactly two” condition.
+
+6. **Convert the generated digit sequence to a number and apply the range filter**
+   - Convert digits `[d0..d5]` into the integer value:
+     - `value = d0*100000 + d1*10000 + d2*1000 + d3*100 + d4*10 + d5`
+   - Check `low <= value <= high`.
+   - If both:
+     - `has_exact_pair == True`
+     - and the value is within range
+     - then increment the answer counter.
+
+7. **Edge cases to consider**
+   - **Leading zeros:** The password is described as a six-digit number. In the original AoC problem, leading zeros are not allowed because it’s a six-digit range. Here, since bounds are given as six-digit numbers, you can safely assume digits[0] will be non-zero when filtering by numeric range. Still, your generator may produce sequences starting with 0; they will be filtered out by `low`/`high`.
+   - **All digits same (e.g., 111111):**
+     - Run length is 6, so it should **not** count for Part Two (no run of exactly 2).
+   - **Multiple groups (e.g., 112233):**
+     - There are runs of exactly 2 for each pair; should count.
+   - **Larger group containing a double (e.g., 111122):**
+     - Runs are 4 of ‘1’ and 2 of ‘2’; still counts because there exists a run of exactly 2.
+   - **No doubles (e.g., 123789):**
+     - All runs length 1; should not count.
+
+8. **Complexity analysis**
+   - The number of non-decreasing 6-digit sequences from digits 0–9 is:
+     - combinations with repetition: `C(10+6-1, 6) = C(15, 6) = 5005`
+   - For each sequence, you do O(6) work (or O(1) incremental work if you track runs during generation).
+   - **Time:** ~5005 sequences × small constant → very fast.
+   - **Space:** O(6) recursion depth and a few variables → O(1) auxiliary space.
+
+9. **Finalize and output**
+   - After generation completes, print the final count as a single integer to standard output.
+   - Match the required output format: just the number with a newline.
+
+10. **Sanity-check with provided samples**
+   - Verify your logic against:
+     - `112233-112233` → `1`
+     - `123444-123444` → `0`
+     - `111122-111122` → `1`
+   - These confirm the “exactly two” run-length handling is correct.
+[34m
+
+________________________[0m
+[34mInput for our problem planning using example: 2:[0m
+Given a competitive programming problem, generate one unique, detailed, step-by-step plan to solve it.
+# Example Problem:
+
+Given a range [L, R], count numbers whose digits are non-decreasing and contain at least one adjacent equal pair (similar to Part 1), ignoring the “exactly two” restriction.
+
+
+# Example Techniques:
+
+- Early pruning with monotonic check.
+- Linear scan for adjacent equality.
+- Constant-size digit processing (fixed length 6).
+
+
+# Example Planning:
+
+1. Reduce the problem to two independent checks:
+   - Monotonicity (global constraint).
+   - Existence of adjacent duplicate (local constraint).
+2. Implement monotonicity first:
+   - It’s cheap and rejects quickly.
+3. Implement adjacent duplicate check:
+   - Another cheap linear scan.
+4. Complexity:
+   - O(6) per number, O(1) space.
+   - Total O(rangeSize) time.
+5. Use cases:
+   - Counting constrained digit patterns in numeric ranges.
+   - Baseline approach before optimizing with digit generation or digit DP.
+
+
+# Algorithm:
+## Relevant Algorithm: 
+Most efficient algorithm to use for the original problem: Digit generation with pruning (construct only non-decreasing digit sequences) + run-length tracking.
+
+
+# Learned Techniques:
+## Learned Code Generation Techniques: 
+- Run-length encoding (RLE) on digits to detect “exactly two adjacent digits” groups efficiently.
+- Early pruning by checking the monotonic (non-decreasing) constraint before more expensive checks.
+- Digit sequence generation/backtracking under monotonic constraints to drastically reduce the search space compared to brute force.
+
+
+# Problem to Solve:
+--- Day 4: Secure Container ---
+You arrive at the Venus fuel depot only to discover it's protected by a password.  The Elves had written the password on a sticky note, but someone threw it out .
+However, they do remember a few key facts about the password:
+- It is a six-digit number.
+- The value is within the range given in your puzzle input.
+- Two adjacent digits are the same (like 22 in 1 22 345 ).
+- Going from left to right, the digits never decrease ; they only ever increase or stay the same (like 111123 or 135679 ).
+Other than the range rule, the following are true:
+- 111111 meets these criteria (double 11 , never decreases).
+- 2234 50 does not meet these criteria (decreasing pair of digits 50 ).
+- 123789 does not meet these criteria (no double).
+How many different passwords within the range given in your puzzle input meet these criteria?--- Part Two ---
+An Elf just remembered one more important detail: the two adjacent matching digits are not part of a larger group of matching digits .
+Given this additional criterion, but still ignoring the range rule, the following are now true:
+- 112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+- 123 444 no longer meets the criteria (the repeated 44 is part of a larger group of 444 ).
+- 111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22 ).
+How many different passwords within the range given in your puzzle input meet all of the criteria?
+
+Sample Input Format:
+111111-111111
+Sample Output Format:
+0
+
+-------
+Important: You must follow the input output format. Input should be taken from standard input and output should be given to standard output.
+Note: If you are writing a function then after the function definition take input from using `input()` function, call the function with specified parameters and finally print the output of the function.
+
+# Sample Test Cases:
+## Sample Test cases: 
+Input:
+111111-111111
+Expected output:
+0
+Input:
+223450-223450
+Expected output:
+0
+Input:
+123789-123789
+Expected output:
+0
+Input:
+112233-112233
+Expected output:
+1
+Input:
+123444-123444
+Expected output:
+0
+Input:
+111122-111122
+Expected output:
+1
+
+
+# Detailed Planning:
+Create a detailed, step-by-step plan to solve the problem. Structure your plan as:
+1. Step 1: [Description of first step]
+2. Step 2: [Description of second step]
+...
+n. Step n: [Description of final step]
+
+Important: 
+- Be specific and concrete in each step
+- Consider edge cases and input/output handling
+- Include time and space complexity considerations
+- Do not generate code, only the planning
+[34m
+
+________________________[0m
+[34mResponse from our problem planning:[0m
+1. **Parse the input range**
+   - Read a single line from standard input in the form `L-R`.
+   - Convert both `L` and `R` to integers.
+   - Let `L` and `R` be inclusive bounds.
+   - **Edge case:** `L` and `R` can be equal (range of size 1).
+
+2. **Choose the counting strategy (avoid brute force)**
+   - Since the password is always **exactly 6 digits**, brute-forcing every number in `[L, R]` can be large.
+   - Use **digit generation with pruning** under the constraint:
+     - Digits are **non-decreasing** left to right.
+   - This reduces the search space dramatically because you only generate valid monotone digit sequences.
+
+3. **Represent a candidate password as a 6-digit non-decreasing sequence**
+   - Build digits left-to-right using backtracking:
+     - At position `i` (0..5), choose a digit `d` from `prev_digit..9`.
+     - Maintain `prev_digit` (the last chosen digit) to enforce non-decreasing order.
+   - This guarantees the “never decreases” rule by construction.
+
+4. **Track run lengths to enforce Part Two’s “exactly two” rule**
+   - While generating digits, maintain the current run:
+     - `current_digit` (digit of the ongoing run)
+     - `run_length` (how many times it has repeated consecutively so far)
+   - When you append a digit:
+     - If it equals `current_digit`, increment `run_length`.
+     - If it differs, “close” the previous run:
+       - If `run_length == 2`, mark that we have found a valid double.
+       - Start a new run with `run_length = 1` and update `current_digit`.
+
+5. **Handle the final run at the end of 6 digits**
+   - After placing all 6 digits, you must also evaluate the last run:
+     - If the final `run_length == 2`, then the candidate satisfies the “exactly two” condition.
+   - The candidate is valid iff:
+     - It has **at least one run of length exactly 2**.
+
+6. **Convert each generated digit sequence to a number and apply the range rule**
+   - Once you have a full 6-digit sequence, compute its integer value (or build it incrementally).
+   - Check whether it lies within `[L, R]` inclusive.
+   - If yes, increment the answer.
+
+7. **Add pruning to reduce unnecessary work**
+   - **Prune by partial prefix bounds (optional but helpful):**
+     - While generating, you can compute the numeric value of the prefix and compare against the corresponding prefix of `L` and `R` to prune impossible branches.
+     - Because digits are non-decreasing and length is fixed (6), this can be implemented carefully, but even without it, the monotone generation is usually fast enough.
+   - **Simpler pruning (always safe):**
+     - If you already know you cannot reach a valid “exactly two” run given the remaining positions, you could prune—but this requires more complex reasoning. You can skip this if performance is sufficient.
+
+8. **Ensure correctness with tricky cases**
+   - **All digits same (e.g., 111111):**
+     - Run length is 6 → no run of length exactly 2 → invalid for Part Two.
+   - **Multiple doubles (e.g., 112233):**
+     - Runs are 2,2,2 → valid.
+   - **Larger group containing a double (e.g., 123444):**
+     - Run length 3 for digit 4 → invalid even though there are adjacent equals.
+   - **Overlapping doubles not possible in a run:**
+     - A run of length 3 cannot contain an “exactly two” adjacent pair that is not part of a larger group; your run-length tracking correctly rejects it.
+
+9. **Complexity analysis**
+   - The number of non-decreasing 6-digit sequences from digits 0..9 is:
+     - `C(10+6-1, 6) = C(15, 6) = 5005` (small).
+   - For each sequence, you do O(6) work to finalize/check runs and compute the number.
+   - **Time:** ~ O(5005 * 6) ≈ 30k operations (very fast).
+   - **Space:** O(6) recursion stack / digit buffer.
+
+10. **Implement the final counting procedure**
+   - Initialize `answer = 0`.
+   - Run the backtracking generator for 6 positions:
+     - Parameters typically include: position index, last chosen digit, current run digit, current run length, and a boolean `has_exact_double`.
+   - For each complete sequence:
+     - Evaluate the last run.
+     - If `has_exact_double` is true and the number is within `[L, R]`, increment `answer`.
+
+11. **Output the result**
+   - Print `answer` as a single integer to standard output.
+   - **Match the required format:** no extra text, just the number.
+
+12. **Validate against sample tests**
+   - Confirm:
+     - `111111-111111` → 0
+     - `112233-112233` → 1
+     - `123444-123444` → 0
+     - `111122-111122` → 1
+   - These validate both the non-decreasing constraint and the “exactly two” run-length rule.
+[34m
+
+________________________[0m
+[34mInput for our problem planning using example: 3:[0m
+Given a competitive programming problem, generate one unique, detailed, step-by-step plan to solve it.
+# Example Problem:
+
+Count numbers in [L, R] where the multiset of digits satisfies a constraint (e.g., exactly k occurrences of some digit) while digits are non-decreasing. This generalizes the “group length” idea using run-length or frequency counting.
+
+
+# Example Techniques:
+
+- Frequency counting (histogram) over digits.
+- Separation of concerns: monotonic constraint + digit multiset constraint.
+- Fixed-size arrays for O(1) memory and O(6) time.
+
+
+# Example Planning:
+
+1. Decide whether the constraint is about:
+   - Adjacent groups (use run-length encoding), or
+   - Total counts of digits (use frequency histogram).
+2. For this generalized problem, use frequency histogram:
+   - It’s straightforward and robust.
+3. Keep monotonic check as a fast filter.
+4. Complexity:
+   - O(6) per number, O(1) space.
+5. Use cases:
+   - Variants of digit puzzles where constraints depend on counts rather than adjacency.
+   - Useful when “exactly two” is interpreted as total occurrences rather than a contiguous run.
+
+
+# Algorithm:
+## Relevant Algorithm: 
+Most efficient algorithm to use for the original problem: Digit generation with pruning (construct only non-decreasing digit sequences) + run-length tracking.
+
+
+# Learned Techniques:
+## Learned Code Generation Techniques: 
+- Run-length encoding (RLE) on digits to detect “exactly two adjacent digits” groups efficiently.
+- Early pruning by checking the monotonic (non-decreasing) constraint before more expensive checks.
+- Digit sequence generation/backtracking under monotonic constraints to drastically reduce the search space compared to brute force.
+
+
+# Problem to Solve:
+--- Day 4: Secure Container ---
+You arrive at the Venus fuel depot only to discover it's protected by a password.  The Elves had written the password on a sticky note, but someone threw it out .
+However, they do remember a few key facts about the password:
+- It is a six-digit number.
+- The value is within the range given in your puzzle input.
+- Two adjacent digits are the same (like 22 in 1 22 345 ).
+- Going from left to right, the digits never decrease ; they only ever increase or stay the same (like 111123 or 135679 ).
+Other than the range rule, the following are true:
+- 111111 meets these criteria (double 11 , never decreases).
+- 2234 50 does not meet these criteria (decreasing pair of digits 50 ).
+- 123789 does not meet these criteria (no double).
+How many different passwords within the range given in your puzzle input meet these criteria?--- Part Two ---
+An Elf just remembered one more important detail: the two adjacent matching digits are not part of a larger group of matching digits .
+Given this additional criterion, but still ignoring the range rule, the following are now true:
+- 112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+- 123 444 no longer meets the criteria (the repeated 44 is part of a larger group of 444 ).
+- 111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22 ).
+How many different passwords within the range given in your puzzle input meet all of the criteria?
+
+Sample Input Format:
+111111-111111
+Sample Output Format:
+0
+
+-------
+Important: You must follow the input output format. Input should be taken from standard input and output should be given to standard output.
+Note: If you are writing a function then after the function definition take input from using `input()` function, call the function with specified parameters and finally print the output of the function.
+
+# Sample Test Cases:
+## Sample Test cases: 
+Input:
+111111-111111
+Expected output:
+0
+Input:
+223450-223450
+Expected output:
+0
+Input:
+123789-123789
+Expected output:
+0
+Input:
+112233-112233
+Expected output:
+1
+Input:
+123444-123444
+Expected output:
+0
+Input:
+111122-111122
+Expected output:
+1
+
+
+# Detailed Planning:
+Create a detailed, step-by-step plan to solve the problem. Structure your plan as:
+1. Step 1: [Description of first step]
+2. Step 2: [Description of second step]
+...
+n. Step n: [Description of final step]
+
+Important: 
+- Be specific and concrete in each step
+- Consider edge cases and input/output handling
+- Include time and space complexity considerations
+- Do not generate code, only the planning
+[34m
+
+________________________[0m
+[34mResponse from our problem planning:[0m
+1. **Parse the input range**
+   - Read a single line from standard input in the form `L-R`.
+   - Convert both `L` and `R` to integers.
+   - Ensure `L <= R` (the problem guarantees this, but it’s good to be robust).
+
+2. **Decide the counting strategy**
+   - Since the password is exactly **6 digits**, brute-forcing all numbers in `[L, R]` could be large (up to ~1,000,000 checks), but still feasible in many languages.
+   - However, to be safe and clean, use a **digit DP / digit generation** approach that constructs only **non-decreasing digit sequences** and counts those that satisfy the “double” constraints.
+   - This avoids checking monotonicity for every number individually.
+
+3. **Model the constraints precisely**
+   - Let the password digits be `d0 d1 d2 d3 d4 d5`.
+   - **Monotonic constraint:** `d0 <= d1 <= ... <= d5`.
+   - **Part 1 (not needed for final answer, but useful for understanding):** at least one adjacent pair equal.
+   - **Part 2 (required):** there exists at least one digit whose **total run length is exactly 2**.
+     - Example: `112233` has runs `11,22,33` → valid.
+     - Example: `111122` has runs `1111,22` → still valid because `22` is exactly length 2.
+     - Example: `123444` has run `4444` → invalid because no run length is exactly 2.
+
+4. **Use run-length encoding logic during validation**
+   - For any candidate digit sequence, compute run lengths:
+     - Traverse digits left to right, count how many times the current digit repeats consecutively.
+     - Track whether **any run length equals 2**.
+   - Because digits are non-decreasing, runs correspond exactly to groups of equal digits.
+
+5. **Implement counting via digit DP with bounds**
+   - We need to count valid passwords in the inclusive range `[L, R]`.
+   - Use a standard technique: compute `count(<= R) - count(< L)`.
+   - Implement a function `count_up_to(X)` that counts valid 6-digit passwords from `000000` to `X` (inclusive) satisfying:
+     - non-decreasing digits,
+     - and the Part 2 “exactly one run of length 2 exists” condition.
+   - Then answer is:
+     - `count_up_to(R) - count_up_to(L-1)`.
+
+6. **Design the digit DP state**
+   - Since digits are non-decreasing, we can build digits left-to-right while ensuring each next digit is `>= previous`.
+   - A convenient DP state includes:
+     - position index `pos` from `0..5`,
+     - previous digit `prev` (0..9),
+     - current run length `run_len` for the digit `prev`,
+     - a boolean `has_exact_two` indicating whether we have already seen a run of length exactly 2.
+     - Additionally, to respect the upper bound `X`, include a `tight` flag (whether the prefix equals X’s prefix).
+   - Transitions:
+     - Choose next digit `d` in `[prev..9]` (to enforce non-decreasing).
+     - Update `run_len`:
+       - if `d == prev`, increment `run_len`,
+       - else finalize the previous run: if `run_len == 2`, set `has_exact_two = True`, then start new run with `run_len = 1`.
+     - Update `tight` based on whether chosen digit equals the corresponding digit in `X`.
+
+7. **Handle the “end of number” run**
+   - After placing all 6 digits, you must also check the final run:
+     - If the last run length equals 2, it should count toward `has_exact_two`.
+   - So at the terminal DP step, compute:
+     - `has_exact_two OR (run_len == 2)`.
+
+8. **Ensure exactly 6 digits are considered**
+   - The problem states the password is a six-digit number.
+   - In DP from `000000` to `X`, leading zeros are allowed in the DP construction, but they correspond to shorter “effective” numbers.
+   - Decide how to treat leading zeros:
+     - In AoC Day 4, passwords are treated as **exactly 6 digits**, so leading zeros are not part of the valid set unless the range includes them.
+     - Since the input range is given as six-digit numbers in the original problem, you can safely assume `L` and `R` are within `100000..999999`.
+     - Still, to be robust, you can keep DP over 6 digits and rely on the subtraction with `L-1` to naturally exclude numbers outside the range.
+   - If `L` could be less than 100000 in some custom tests, you’d need to explicitly exclude numbers with leading zeros; but typical problem constraints avoid this.
+
+9. **Complexity considerations**
+   - State size is small:
+     - `pos` up to 6,
+     - `prev` 10 possibilities,
+     - `run_len` up to 6,
+     - `has_exact_two` 2,
+     - `tight` 2.
+   - Transitions iterate digits `d` from `prev..9` (at most 10).
+   - So runtime is roughly `O(6 * 10 * 6 * 2 * 2 * 10)` per `count_up_to`, which is tiny.
+   - Space is the DP memo table: also small (a few thousand states).
+
+10. **Edge cases to verify**
+   - **No valid numbers:** output `0` (e.g., `111111-111111` is invalid for Part 2 because run length is 6, not 2).
+   - **Exactly one run of length 2:** e.g., `112233` should count as 1.
+   - **Multiple runs, one of which is exactly 2:** e.g., `111122` should count as 1.
+   - **Run length larger than 2 should not qualify:** e.g., `123444` invalid.
+   - **Range boundaries:** ensure inclusivity of `R` and correct handling of `L-1` when `L` is the smallest possible value (if `L=0`, then `L-1` is negative—guard by returning 0 for negative X).
+
+11. **Compute the final answer**
+   - Compute:
+     - `ans = count_up_to(R) - count_up_to(L-1)`
+   - Print `ans` as an integer to standard output.
+
+12. **Validate against sample tests**
+   - Run the logic mentally against provided samples:
+     - `112233-112233` → 1
+     - `123444-123444` → 0
+     - `111122-111122` → 1
+   - Confirm the DP’s run-length tracking matches these outcomes.
+
+13. **Finalize I/O behavior**
+   - Read input from `stdin`.
+   - Output only the final count to `stdout` with no extra text.
+   - Ensure the program handles the single-line `L-R` format exactly.
+[34mInput for planning verification:[0m
+Evaluate the following plans for solving the problem. 
+Provide a confidence score (0-100) for each plan and explain your reasoning.
+You must not assign any plan the same score as another plan such that there is a clear ranking.
+
+# Problem:
+--- Day 4: Secure Container ---
+You arrive at the Venus fuel depot only to discover it's protected by a password.  The Elves had written the password on a sticky note, but someone threw it out .
+However, they do remember a few key facts about the password:
+- It is a six-digit number.
+- The value is within the range given in your puzzle input.
+- Two adjacent digits are the same (like 22 in 1 22 345 ).
+- Going from left to right, the digits never decrease ; they only ever increase or stay the same (like 111123 or 135679 ).
+Other than the range rule, the following are true:
+- 111111 meets these criteria (double 11 , never decreases).
+- 2234 50 does not meet these criteria (decreasing pair of digits 50 ).
+- 123789 does not meet these criteria (no double).
+How many different passwords within the range given in your puzzle input meet these criteria?--- Part Two ---
+An Elf just remembered one more important detail: the two adjacent matching digits are not part of a larger group of matching digits .
+Given this additional criterion, but still ignoring the range rule, the following are now true:
+- 112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+- 123 444 no longer meets the criteria (the repeated 44 is part of a larger group of 444 ).
+- 111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22 ).
+How many different passwords within the range given in your puzzle input meet all of the criteria?
+
+Sample Input Format:
+111111-111111
+Sample Output Format:
+0
+
+-------
+Important: You must follow the input output format. Input should be taken from standard input and output should be given to standard output.
+Note: If you are writing a function then after the function definition take input from using `input()` function, call the function with specified parameters and finally print the output of the function.
+
+# Proposed Plans:
+plan 1: 1. **Parse input and extract bounds**
+   - Read a single line from standard input in the form `low-high`.
+   - Split on `-` and convert both parts to integers: `low`, `high`.
+   - Ensure `low <= high` (the problem guarantees this, but it’s safe to assume).
+
+2. **Choose the core approach: generate only non-decreasing digit sequences**
+   - Instead of checking every number in `[low, high]`, construct valid 6-digit digit sequences where digits never decrease left-to-right.
+   - This reduces the search space dramatically because the monotonic constraint is always satisfied by construction.
+   - You will still filter by the numeric range at the end (or during construction).
+
+3. **Set up a digit-generation/backtracking structure**
+   - Build digits left-to-right with a recursive (or iterative) process:
+     - Maintain:
+       - `pos` = current index (0 to 5)
+       - `prev_digit` = last chosen digit (to enforce non-decreasing)
+       - `digits` (or just the last digit and run-length info)
+   - At each position, choose the next digit `d` such that `d >= prev_digit` and `d` is in `[0..9]`.
+
+4. **Track run-lengths to support Part Two (“exactly two”)**
+   - Part Two requires: there exists at least one group of **exactly two** equal adjacent digits.
+   - While generating digits, track the current run:
+     - `current_digit` (the digit being repeated)
+     - `run_len` (length of the current run)
+   - When you append a new digit:
+     - If it equals `current_digit`, increment `run_len`.
+     - If it differs:
+       - The previous run is now “closed”; if `run_len == 2`, mark `has_exact_pair = True`.
+       - Start a new run with `run_len = 1` and update `current_digit`.
+
+5. **Handle the final run at the end of the 6 digits**
+   - When `pos == 6` (you’ve chosen all 6 digits):
+     - Close the last run similarly:
+       - If `run_len == 2`, set `has_exact_pair = True`.
+     - Now you know whether the sequence satisfies the “exactly two” condition.
+
+6. **Convert the generated digit sequence to a number and apply the range filter**
+   - Convert digits `[d0..d5]` into the integer value:
+     - `value = d0*100000 + d1*10000 + d2*1000 + d3*100 + d4*10 + d5`
+   - Check `low <= value <= high`.
+   - If both:
+     - `has_exact_pair == True`
+     - and the value is within range
+     - then increment the answer counter.
+
+7. **Edge cases to consider**
+   - **Leading zeros:** The password is described as a six-digit number. In the original AoC problem, leading zeros are not allowed because it’s a six-digit range. Here, since bounds are given as six-digit numbers, you can safely assume digits[0] will be non-zero when filtering by numeric range. Still, your generator may produce sequences starting with 0; they will be filtered out by `low`/`high`.
+   - **All digits same (e.g., 111111):**
+     - Run length is 6, so it should **not** count for Part Two (no run of exactly 2).
+   - **Multiple groups (e.g., 112233):**
+     - There are runs of exactly 2 for each pair; should count.
+   - **Larger group containing a double (e.g., 111122):**
+     - Runs are 4 of ‘1’ and 2 of ‘2’; still counts because there exists a run of exactly 2.
+   - **No doubles (e.g., 123789):**
+     - All runs length 1; should not count.
+
+8. **Complexity analysis**
+   - The number of non-decreasing 6-digit sequences from digits 0–9 is:
+     - combinations with repetition: `C(10+6-1, 6) = C(15, 6) = 5005`
+   - For each sequence, you do O(6) work (or O(1) incremental work if you track runs during generation).
+   - **Time:** ~5005 sequences × small constant → very fast.
+   - **Space:** O(6) recursion depth and a few variables → O(1) auxiliary space.
+
+9. **Finalize and output**
+   - After generation completes, print the final count as a single integer to standard output.
+   - Match the required output format: just the number with a newline.
+
+10. **Sanity-check with provided samples**
+   - Verify your logic against:
+     - `112233-112233` → `1`
+     - `123444-123444` → `0`
+     - `111122-111122` → `1`
+   - These confirm the “exactly two” run-length handling is correct.
+plan 2: 1. **Parse the input range**
+   - Read a single line from standard input in the form `L-R`.
+   - Convert both `L` and `R` to integers.
+   - Let `L` and `R` be inclusive bounds.
+   - **Edge case:** `L` and `R` can be equal (range of size 1).
+
+2. **Choose the counting strategy (avoid brute force)**
+   - Since the password is always **exactly 6 digits**, brute-forcing every number in `[L, R]` can be large.
+   - Use **digit generation with pruning** under the constraint:
+     - Digits are **non-decreasing** left to right.
+   - This reduces the search space dramatically because you only generate valid monotone digit sequences.
+
+3. **Represent a candidate password as a 6-digit non-decreasing sequence**
+   - Build digits left-to-right using backtracking:
+     - At position `i` (0..5), choose a digit `d` from `prev_digit..9`.
+     - Maintain `prev_digit` (the last chosen digit) to enforce non-decreasing order.
+   - This guarantees the “never decreases” rule by construction.
+
+4. **Track run lengths to enforce Part Two’s “exactly two” rule**
+   - While generating digits, maintain the current run:
+     - `current_digit` (digit of the ongoing run)
+     - `run_length` (how many times it has repeated consecutively so far)
+   - When you append a digit:
+     - If it equals `current_digit`, increment `run_length`.
+     - If it differs, “close” the previous run:
+       - If `run_length == 2`, mark that we have found a valid double.
+       - Start a new run with `run_length = 1` and update `current_digit`.
+
+5. **Handle the final run at the end of 6 digits**
+   - After placing all 6 digits, you must also evaluate the last run:
+     - If the final `run_length == 2`, then the candidate satisfies the “exactly two” condition.
+   - The candidate is valid iff:
+     - It has **at least one run of length exactly 2**.
+
+6. **Convert each generated digit sequence to a number and apply the range rule**
+   - Once you have a full 6-digit sequence, compute its integer value (or build it incrementally).
+   - Check whether it lies within `[L, R]` inclusive.
+   - If yes, increment the answer.
+
+7. **Add pruning to reduce unnecessary work**
+   - **Prune by partial prefix bounds (optional but helpful):**
+     - While generating, you can compute the numeric value of the prefix and compare against the corresponding prefix of `L` and `R` to prune impossible branches.
+     - Because digits are non-decreasing and length is fixed (6), this can be implemented carefully, but even without it, the monotone generation is usually fast enough.
+   - **Simpler pruning (always safe):**
+     - If you already know you cannot reach a valid “exactly two” run given the remaining positions, you could prune—but this requires more complex reasoning. You can skip this if performance is sufficient.
+
+8. **Ensure correctness with tricky cases**
+   - **All digits same (e.g., 111111):**
+     - Run length is 6 → no run of length exactly 2 → invalid for Part Two.
+   - **Multiple doubles (e.g., 112233):**
+     - Runs are 2,2,2 → valid.
+   - **Larger group containing a double (e.g., 123444):**
+     - Run length 3 for digit 4 → invalid even though there are adjacent equals.
+   - **Overlapping doubles not possible in a run:**
+     - A run of length 3 cannot contain an “exactly two” adjacent pair that is not part of a larger group; your run-length tracking correctly rejects it.
+
+9. **Complexity analysis**
+   - The number of non-decreasing 6-digit sequences from digits 0..9 is:
+     - `C(10+6-1, 6) = C(15, 6) = 5005` (small).
+   - For each sequence, you do O(6) work to finalize/check runs and compute the number.
+   - **Time:** ~ O(5005 * 6) ≈ 30k operations (very fast).
+   - **Space:** O(6) recursion stack / digit buffer.
+
+10. **Implement the final counting procedure**
+   - Initialize `answer = 0`.
+   - Run the backtracking generator for 6 positions:
+     - Parameters typically include: position index, last chosen digit, current run digit, current run length, and a boolean `has_exact_double`.
+   - For each complete sequence:
+     - Evaluate the last run.
+     - If `has_exact_double` is true and the number is within `[L, R]`, increment `answer`.
+
+11. **Output the result**
+   - Print `answer` as a single integer to standard output.
+   - **Match the required format:** no extra text, just the number.
+
+12. **Validate against sample tests**
+   - Confirm:
+     - `111111-111111` → 0
+     - `112233-112233` → 1
+     - `123444-123444` → 0
+     - `111122-111122` → 1
+   - These validate both the non-decreasing constraint and the “exactly two” run-length rule.
+plan 3: 1. **Parse the input range**
+   - Read a single line from standard input in the form `L-R`.
+   - Convert both `L` and `R` to integers.
+   - Ensure `L <= R` (the problem guarantees this, but it’s good to be robust).
+
+2. **Decide the counting strategy**
+   - Since the password is exactly **6 digits**, brute-forcing all numbers in `[L, R]` could be large (up to ~1,000,000 checks), but still feasible in many languages.
+   - However, to be safe and clean, use a **digit DP / digit generation** approach that constructs only **non-decreasing digit sequences** and counts those that satisfy the “double” constraints.
+   - This avoids checking monotonicity for every number individually.
+
+3. **Model the constraints precisely**
+   - Let the password digits be `d0 d1 d2 d3 d4 d5`.
+   - **Monotonic constraint:** `d0 <= d1 <= ... <= d5`.
+   - **Part 1 (not needed for final answer, but useful for understanding):** at least one adjacent pair equal.
+   - **Part 2 (required):** there exists at least one digit whose **total run length is exactly 2**.
+     - Example: `112233` has runs `11,22,33` → valid.
+     - Example: `111122` has runs `1111,22` → still valid because `22` is exactly length 2.
+     - Example: `123444` has run `4444` → invalid because no run length is exactly 2.
+
+4. **Use run-length encoding logic during validation**
+   - For any candidate digit sequence, compute run lengths:
+     - Traverse digits left to right, count how many times the current digit repeats consecutively.
+     - Track whether **any run length equals 2**.
+   - Because digits are non-decreasing, runs correspond exactly to groups of equal digits.
+
+5. **Implement counting via digit DP with bounds**
+   - We need to count valid passwords in the inclusive range `[L, R]`.
+   - Use a standard technique: compute `count(<= R) - count(< L)`.
+   - Implement a function `count_up_to(X)` that counts valid 6-digit passwords from `000000` to `X` (inclusive) satisfying:
+     - non-decreasing digits,
+     - and the Part 2 “exactly one run of length 2 exists” condition.
+   - Then answer is:
+     - `count_up_to(R) - count_up_to(L-1)`.
+
+6. **Design the digit DP state**
+   - Since digits are non-decreasing, we can build digits left-to-right while ensuring each next digit is `>= previous`.
+   - A convenient DP state includes:
+     - position index `pos` from `0..5`,
+     - previous digit `prev` (0..9),
+     - current run length `run_len` for the digit `prev`,
+     - a boolean `has_exact_two` indicating whether we have already seen a run of length exactly 2.
+     - Additionally, to respect the upper bound `X`, include a `tight` flag (whether the prefix equals X’s prefix).
+   - Transitions:
+     - Choose next digit `d` in `[prev..9]` (to enforce non-decreasing).
+     - Update `run_len`:
+       - if `d == prev`, increment `run_len`,
+       - else finalize the previous run: if `run_len == 2`, set `has_exact_two = True`, then start new run with `run_len = 1`.
+     - Update `tight` based on whether chosen digit equals the corresponding digit in `X`.
+
+7. **Handle the “end of number” run**
+   - After placing all 6 digits, you must also check the final run:
+     - If the last run length equals 2, it should count toward `has_exact_two`.
+   - So at the terminal DP step, compute:
+     - `has_exact_two OR (run_len == 2)`.
+
+8. **Ensure exactly 6 digits are considered**
+   - The problem states the password is a six-digit number.
+   - In DP from `000000` to `X`, leading zeros are allowed in the DP construction, but they correspond to shorter “effective” numbers.
+   - Decide how to treat leading zeros:
+     - In AoC Day 4, passwords are treated as **exactly 6 digits**, so leading zeros are not part of the valid set unless the range includes them.
+     - Since the input range is given as six-digit numbers in the original problem, you can safely assume `L` and `R` are within `100000..999999`.
+     - Still, to be robust, you can keep DP over 6 digits and rely on the subtraction with `L-1` to naturally exclude numbers outside the range.
+   - If `L` could be less than 100000 in some custom tests, you’d need to explicitly exclude numbers with leading zeros; but typical problem constraints avoid this.
+
+9. **Complexity considerations**
+   - State size is small:
+     - `pos` up to 6,
+     - `prev` 10 possibilities,
+     - `run_len` up to 6,
+     - `has_exact_two` 2,
+     - `tight` 2.
+   - Transitions iterate digits `d` from `prev..9` (at most 10).
+   - So runtime is roughly `O(6 * 10 * 6 * 2 * 2 * 10)` per `count_up_to`, which is tiny.
+   - Space is the DP memo table: also small (a few thousand states).
+
+10. **Edge cases to verify**
+   - **No valid numbers:** output `0` (e.g., `111111-111111` is invalid for Part 2 because run length is 6, not 2).
+   - **Exactly one run of length 2:** e.g., `112233` should count as 1.
+   - **Multiple runs, one of which is exactly 2:** e.g., `111122` should count as 1.
+   - **Run length larger than 2 should not qualify:** e.g., `123444` invalid.
+   - **Range boundaries:** ensure inclusivity of `R` and correct handling of `L-1` when `L` is the smallest possible value (if `L=0`, then `L-1` is negative—guard by returning 0 for negative X).
+
+11. **Compute the final answer**
+   - Compute:
+     - `ans = count_up_to(R) - count_up_to(L-1)`
+   - Print `ans` as an integer to standard output.
+
+12. **Validate against sample tests**
+   - Run the logic mentally against provided samples:
+     - `112233-112233` → 1
+     - `123444-123444` → 0
+     - `111122-111122` → 1
+   - Confirm the DP’s run-length tracking matches these outcomes.
+
+13. **Finalize I/O behavior**
+   - Read input from `stdin`.
+   - Output only the final count to `stdout` with no extra text.
+   - Ensure the program handles the single-line `L-R` format exactly.
+
+# Evaluation Criteria:
+1. Completeness: Does the plan cover all aspects of the problem?
+2. Correctness: Is the algorithmic approach sound?
+3. Feasibility: Can the plan be implemented effectively?
+4. Edge Cases: Does the plan consider boundary conditions?
+5. Efficiency: Does the plan consider time and space complexity?
+
+# Your Response:
+<root>
+<plan>
+<analysis>
+# Detailed analysis of the plan's strengths and weaknesses
+</analysis>
+<confidence>
+# Confidence score (0-100 integer) based on the above criteria
+</confidence>
+</plan>
+# Add the other plan's analysis and confidence here...
+</root>
+[33mParsed XML to dict:
+{
+  "plan": [
+    {
+      "analysis": "\n      Plan 1 is a straightforward generate-only approach: it constructs all non-decreasing 6-digit digit sequences (monotonic constraint satisfied by construction), tracks run lengths to enforce the \u201cexactly two\u201d rule for Part Two, then filters by the numeric range. This directly matches the problem constraints and is easy to implement correctly.\n      \n      Strengths:\n      - Correctly enforces non-decreasing digits via `d >= prev_digit`.\n      - Correctly handles Part Two by tracking run lengths and checking whether any run equals exactly 2 (including the final run).\n      - Complexity is very small (5005 sequences), so efficiency is excellent.\n      - Edge cases like 111111 (run length 6) and 112233 / 111122 are addressed.\n      \n      Weaknesses / risks:\n      - The only potential ambiguity is \u201cleading zeros\u201d: the plan mentions they may be generated but will be filtered by the numeric range. This is fine if the input bounds are standard AoC-style six-digit numbers (as implied), but if someone provided bounds that include values below 100000, then leading-zero sequences could incorrectly be counted as \u201c6-digit passwords.\u201d The plan assumes the typical constraint that bounds are six-digit.\n      - Otherwise, the logic is sound and complete.\n    ",
+      "confidence": "92"
+    },
+    {
+      "analysis": "\n      Plan 2 is essentially the same core algorithm as Plan 1 (generate non-decreasing sequences + run-length tracking + range filter), with an added discussion of optional pruning. It also correctly handles the final run and the \u201cexactly two\u201d condition.\n      \n      Strengths:\n      - Same correctness foundation as Plan 1: monotonic generation + run-length tracking.\n      - Explicitly notes that a run of length 3 should not count (e.g., 123444).\n      - Complexity is still tiny; pruning is optional.\n      - Edge cases are covered similarly.\n      \n      Weaknesses / risks:\n      - The \u201cprune by partial prefix bounds\u201d is described as optional but could be implemented incorrectly if attempted; however, the plan also states it can be skipped. As written, the plan remains feasible and correct if pruning is omitted.\n      - Leading-zero handling is again treated as \u201cfiltered out by range,\u201d relying on typical six-digit bounds.\n      \n      Overall, it\u2019s correct and implementable, but it\u2019s not meaningfully different from Plan 1 in risk profile; it just adds optional pruning complexity that could introduce bugs if implemented.\n    ",
+      "confidence": "86"
+    },
+    {
+      "analysis": "\n      Plan 3 proposes a digit-DP approach with `count_up_to(R) - count_up_to(L-1)` and a DP state including `pos`, `prev`, `run_len`, `has_exact_two`, and `tight`. This is algorithmically sound and can be very efficient.\n      \n      Strengths:\n      - Correctly models the constraints: non-decreasing digits via transitions `d in [prev..9]`.\n      - Correctly enforces Part Two by tracking run lengths and checking the final run.\n      - Properly handles range via prefix counting (`<=R` minus `<L`).\n      - Complexity is small in theory (few thousand states).\n      - Includes boundary handling for negative `X` when computing `L-1`.\n      \n      Weaknesses / risks:\n      - The plan\u2019s leading-zero discussion is a bit hand-wavy: it says leading zeros are allowed in DP construction but then argues that typical AoC bounds are six-digit so it\u2019s fine. If leading zeros are allowed, DP counts sequences like 000112 as a \u201c6-digit\u201d number; whether that should be included depends on the exact interpretation of the input range. The plan assumes standard AoC constraints, but unlike Plans 1/2 (which generate only non-decreasing sequences and then filter by numeric value), DP with leading zeros can be trickier to align with \u201cexactly six digits\u201d semantics.\n      - Digit DP with `tight` is more complex to implement than the simple 5005-sequence generation; higher implementation complexity increases bug risk (especially around run-length transitions and the final-run check).\n      \n      So it\u2019s correct in principle, but more complex and has a slightly higher chance of subtle implementation/interpretation issues than Plans 1/2.\n    ",
+      "confidence": "78"
+    }
+  ]
+}[0m
+[34mResponse from planning verification:[0m
+Analysis: 
+      Plan 1 is a straightforward generate-only approach: it constructs all non-decreasing 6-digit digit sequences (monotonic constraint satisfied by construction), tracks run lengths to enforce the “exactly two” rule for Part Two, then filters by the numeric range. This directly matches the problem constraints and is easy to implement correctly.
+      
+      Strengths:
+      - Correctly enforces non-decreasing digits via `d >= prev_digit`.
+      - Correctly handles Part Two by tracking run lengths and checking whether any run equals exactly 2 (including the final run).
+      - Complexity is very small (5005 sequences), so efficiency is excellent.
+      - Edge cases like 111111 (run length 6) and 112233 / 111122 are addressed.
+      
+      Weaknesses / risks:
+      - The only potential ambiguity is “leading zeros”: the plan mentions they may be generated but will be filtered by the numeric range. This is fine if the input bounds are standard AoC-style six-digit numbers (as implied), but if someone provided bounds that include values below 100000, then leading-zero sequences could incorrectly be counted as “6-digit passwords.” The plan assumes the typical constraint that bounds are six-digit.
+      - Otherwise, the logic is sound and complete.
+    
+Confidence: 92
+[34mResponse from planning verification:[0m
+Analysis: 
+      Plan 2 is essentially the same core algorithm as Plan 1 (generate non-decreasing sequences + run-length tracking + range filter), with an added discussion of optional pruning. It also correctly handles the final run and the “exactly two” condition.
+      
+      Strengths:
+      - Same correctness foundation as Plan 1: monotonic generation + run-length tracking.
+      - Explicitly notes that a run of length 3 should not count (e.g., 123444).
+      - Complexity is still tiny; pruning is optional.
+      - Edge cases are covered similarly.
+      
+      Weaknesses / risks:
+      - The “prune by partial prefix bounds” is described as optional but could be implemented incorrectly if attempted; however, the plan also states it can be skipped. As written, the plan remains feasible and correct if pruning is omitted.
+      - Leading-zero handling is again treated as “filtered out by range,” relying on typical six-digit bounds.
+      
+      Overall, it’s correct and implementable, but it’s not meaningfully different from Plan 1 in risk profile; it just adds optional pruning complexity that could introduce bugs if implemented.
+    
+Confidence: 86
+[34mResponse from planning verification:[0m
+Analysis: 
+      Plan 3 proposes a digit-DP approach with `count_up_to(R) - count_up_to(L-1)` and a DP state including `pos`, `prev`, `run_len`, `has_exact_two`, and `tight`. This is algorithmically sound and can be very efficient.
+      
+      Strengths:
+      - Correctly models the constraints: non-decreasing digits via transitions `d in [prev..9]`.
+      - Correctly enforces Part Two by tracking run lengths and checking the final run.
+      - Properly handles range via prefix counting (`<=R` minus `<L`).
+      - Complexity is small in theory (few thousand states).
+      - Includes boundary handling for negative `X` when computing `L-1`.
+      
+      Weaknesses / risks:
+      - The plan’s leading-zero discussion is a bit hand-wavy: it says leading zeros are allowed in DP construction but then argues that typical AoC bounds are six-digit so it’s fine. If leading zeros are allowed, DP counts sequences like 000112 as a “6-digit” number; whether that should be included depends on the exact interpretation of the input range. The plan assumes standard AoC constraints, but unlike Plans 1/2 (which generate only non-decreasing sequences and then filter by numeric value), DP with leading zeros can be trickier to align with “exactly six digits” semantics.
+      - Digit DP with `tight` is more complex to implement than the simple 5005-sequence generation; higher implementation complexity increases bug risk (especially around run-length transitions and the final-run check).
+      
+      So it’s correct in principle, but more complex and has a slightly higher chance of subtle implementation/interpretation issues than Plans 1/2.
+    
+Confidence: 78
+[34m
+
+________________________[0m
+[34mInput for final code generation:[0m
+Generate Python3 code to solve the following problem based on the provided plan.
+# Problem:
+--- Day 4: Secure Container ---
+You arrive at the Venus fuel depot only to discover it's protected by a password.  The Elves had written the password on a sticky note, but someone threw it out .
+However, they do remember a few key facts about the password:
+- It is a six-digit number.
+- The value is within the range given in your puzzle input.
+- Two adjacent digits are the same (like 22 in 1 22 345 ).
+- Going from left to right, the digits never decrease ; they only ever increase or stay the same (like 111123 or 135679 ).
+Other than the range rule, the following are true:
+- 111111 meets these criteria (double 11 , never decreases).
+- 2234 50 does not meet these criteria (decreasing pair of digits 50 ).
+- 123789 does not meet these criteria (no double).
+How many different passwords within the range given in your puzzle input meet these criteria?--- Part Two ---
+An Elf just remembered one more important detail: the two adjacent matching digits are not part of a larger group of matching digits .
+Given this additional criterion, but still ignoring the range rule, the following are now true:
+- 112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+- 123 444 no longer meets the criteria (the repeated 44 is part of a larger group of 444 ).
+- 111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22 ).
+How many different passwords within the range given in your puzzle input meet all of the criteria?
+
+Sample Input Format:
+111111-111111
+Sample Output Format:
+0
+
+-------
+Important: You must follow the input output format. Input should be taken from standard input and output should be given to standard output.
+Note: If you are writing a function then after the function definition take input from using `input()` function, call the function with specified parameters and finally print the output of the function.
+
+# Planning:
+1. **Parse input and extract bounds**
+   - Read a single line from standard input in the form `low-high`.
+   - Split on `-` and convert both parts to integers: `low`, `high`.
+   - Ensure `low <= high` (the problem guarantees this, but it’s safe to assume).
+
+2. **Choose the core approach: generate only non-decreasing digit sequences**
+   - Instead of checking every number in `[low, high]`, construct valid 6-digit digit sequences where digits never decrease left-to-right.
+   - This reduces the search space dramatically because the monotonic constraint is always satisfied by construction.
+   - You will still filter by the numeric range at the end (or during construction).
+
+3. **Set up a digit-generation/backtracking structure**
+   - Build digits left-to-right with a recursive (or iterative) process:
+     - Maintain:
+       - `pos` = current index (0 to 5)
+       - `prev_digit` = last chosen digit (to enforce non-decreasing)
+       - `digits` (or just the last digit and run-length info)
+   - At each position, choose the next digit `d` such that `d >= prev_digit` and `d` is in `[0..9]`.
+
+4. **Track run-lengths to support Part Two (“exactly two”)**
+   - Part Two requires: there exists at least one group of **exactly two** equal adjacent digits.
+   - While generating digits, track the current run:
+     - `current_digit` (the digit being repeated)
+     - `run_len` (length of the current run)
+   - When you append a new digit:
+     - If it equals `current_digit`, increment `run_len`.
+     - If it differs:
+       - The previous run is now “closed”; if `run_len == 2`, mark `has_exact_pair = True`.
+       - Start a new run with `run_len = 1` and update `current_digit`.
+
+5. **Handle the final run at the end of the 6 digits**
+   - When `pos == 6` (you’ve chosen all 6 digits):
+     - Close the last run similarly:
+       - If `run_len == 2`, set `has_exact_pair = True`.
+     - Now you know whether the sequence satisfies the “exactly two” condition.
+
+6. **Convert the generated digit sequence to a number and apply the range filter**
+   - Convert digits `[d0..d5]` into the integer value:
+     - `value = d0*100000 + d1*10000 + d2*1000 + d3*100 + d4*10 + d5`
+   - Check `low <= value <= high`.
+   - If both:
+     - `has_exact_pair == True`
+     - and the value is within range
+     - then increment the answer counter.
+
+7. **Edge cases to consider**
+   - **Leading zeros:** The password is described as a six-digit number. In the original AoC problem, leading zeros are not allowed because it’s a six-digit range. Here, since bounds are given as six-digit numbers, you can safely assume digits[0] will be non-zero when filtering by numeric range. Still, your generator may produce sequences starting with 0; they will be filtered out by `low`/`high`.
+   - **All digits same (e.g., 111111):**
+     - Run length is 6, so it should **not** count for Part Two (no run of exactly 2).
+   - **Multiple groups (e.g., 112233):**
+     - There are runs of exactly 2 for each pair; should count.
+   - **Larger group containing a double (e.g., 111122):**
+     - Runs are 4 of ‘1’ and 2 of ‘2’; still counts because there exists a run of exactly 2.
+   - **No doubles (e.g., 123789):**
+     - All runs length 1; should not count.
+
+8. **Complexity analysis**
+   - The number of non-decreasing 6-digit sequences from digits 0–9 is:
+     - combinations with repetition: `C(10+6-1, 6) = C(15, 6) = 5005`
+   - For each sequence, you do O(6) work (or O(1) incremental work if you track runs during generation).
+   - **Time:** ~5005 sequences × small constant → very fast.
+   - **Space:** O(6) recursion depth and a few variables → O(1) auxiliary space.
+
+9. **Finalize and output**
+   - After generation completes, print the final count as a single integer to standard output.
+   - Match the required output format: just the number with a newline.
+
+10. **Sanity-check with provided samples**
+   - Verify your logic against:
+     - `112233-112233` → `1`
+     - `123444-123444` → `0`
+     - `111122-111122` → `1`
+   - These confirm the “exactly two” run-length handling is correct.
+
+# Sample Test Cases:
+## Sample Test cases: 
+Input:
+111111-111111
+Expected output:
+0
+Input:
+223450-223450
+Expected output:
+0
+Input:
+123789-123789
+Expected output:
+0
+Input:
+112233-112233
+Expected output:
+1
+Input:
+123444-123444
+Expected output:
+0
+Input:
+111122-111122
+Expected output:
+1
+
+
+# Learned Techniques:
+## Learned Code Generation Techniques: 
+- Run-length encoding (RLE) on digits to detect “exactly two adjacent digits” groups efficiently.
+- Early pruning by checking the monotonic (non-decreasing) constraint before more expensive checks.
+- Digit sequence generation/backtracking under monotonic constraints to drastically reduce the search space compared to brute force.
+
+
+# Algorithm:
+## Relevant Algorithm: 
+Most efficient algorithm to use for the original problem: Digit generation with pruning (construct only non-decreasing digit sequences) + run-length tracking.
+
+
+# Instructions:
+1. Implement the solution exactly as per the planning
+2. Add comments to explain key steps
+3. Handle edge cases appropriately
+
+# Your Response:
+Generate only the Python3 code. Do not include any explanations.
+[34m
+
+________________________[0m
+[34mResponse from final code generation:[0m
+[33mimport sys
+
+def count_passwords(low: int, high: int, require_exact_pair: bool) -> int:
+    digits = [0] * 6
+    ans = 0
+
+    def backtrack(pos: int, prev_digit: int, current_digit: int, run_len: int, has_exact_pair: bool):
+        nonlocal ans
+
+        if pos == 6:
+            # Close the final run
+            if require_exact_pair:
+                if run_len == 2:
+                    has_exact_pair = True
+                if has_exact_pair:
+                    value = (
+                        digits[0] * 100000 + digits[1] * 10000 + digits[2] * 1000 +
+                        digits[3] * 100 + digits[4] * 10 + digits[5]
+                    )
+                    if low <= value <= high:
+                        ans += 1
+            else:
+                # Part 1: at least one adjacent equal pair
+                if run_len >= 2:
+                    value = (
+                        digits[0] * 100000 + digits[1] * 10000 + digits[2] * 1000 +
+                        digits[3] * 100 + digits[4] * 10 + digits[5]
+                    )
+                    if low <= value <= high:
+                        ans += 1
+            return
+
+        for d in range(prev_digit, 10):
+            digits[pos] = d
+            if pos == 0:
+                # Initialize first run
+                backtrack(pos + 1, d, d, 1, False)
+            else:
+                if d == current_digit:
+                    # Extend current run
+                    if require_exact_pair:
+                        backtrack(pos + 1, d, current_digit, run_len + 1, has_exact_pair)
+                    else:
+                        backtrack(pos + 1, d, current_digit, run_len + 1, has_exact_pair)
+                else:
+                    # Close previous run
+                    if require_exact_pair:
+                        if run_len == 2:
+                            has_exact_pair = True
+                    backtrack(pos + 1, d, d, 1, has_exact_pair)
+
+    backtrack(0, 0, 0, 0, False)
+    return ans
+
+def solve():
+    line = sys.stdin.readline().strip()
+    if not line:
+        return
+    low_s, high_s = line.split('-')
+    low, high = int(low_s), int(high_s)
+
+    # Part Two as required by the prompt
+    result = count_passwords(low, high, require_exact_pair=True)
+    sys.stdout.write(str(result))
+
+if __name__ == "__main__":
+    solve()
+[0m
+[34m________________________
+
+[0m
+completed 1/1 (dataset index 207), Status: passed, number of success = 1/1, acc = 100.0
+#########################
+Running end GPT5-PACEcoding-AoC-Python3-0.0-1-207-208, Time: 2026-05-28 19:50:48.515505
+##########################
+

@@ -1,0 +1,86 @@
+PACEcoding short log (AoC 2019 Day 4 part 2) "Secure Container"
+
+CODE:
+import sys
+
+def count_passwords(low: int, high: int, require_exact_pair: bool) -> int:
+    digits = [0] * 6
+    ans = 0
+
+    def backtrack(pos: int, prev_digit: int, current_digit: int, run_len: int, has_exact_pair: bool):
+        nonlocal ans
+
+        if pos == 6:
+            # Close the final run
+            if require_exact_pair:
+                if run_len == 2:
+                    has_exact_pair = True
+                if has_exact_pair:
+                    value = (
+                        digits[0] * 100000 + digits[1] * 10000 + digits[2] * 1000 +
+                        digits[3] * 100 + digits[4] * 10 + digits[5]
+                    )
+                    if low <= value <= high:
+                        ans += 1
+            else:
+                # Part 1: at least one adjacent equal pair
+                if run_len >= 2:
+                    value = (
+                        digits[0] * 100000 + digits[1] * 10000 + digits[2] * 1000 +
+                        digits[3] * 100 + digits[4] * 10 + digits[5]
+                    )
+                    if low <= value <= high:
+                        ans += 1
+            return
+
+        for d in range(prev_digit, 10):
+            digits[pos] = d
+            if pos == 0:
+                # Initialize first run
+                backtrack(pos + 1, d, d, 1, False)
+            else:
+                if d == current_digit:
+                    # Extend current run
+                    if require_exact_pair:
+                        backtrack(pos + 1, d, current_digit, run_len + 1, has_exact_pair)
+                    else:
+                        backtrack(pos + 1, d, current_digit, run_len + 1, has_exact_pair)
+                else:
+                    # Close previous run
+                    if require_exact_pair:
+                        if run_len == 2:
+                            has_exact_pair = True
+                    backtrack(pos + 1, d, d, 1, has_exact_pair)
+
+    backtrack(0, 0, 0, 0, False)
+    return ans
+
+def solve():
+    line = sys.stdin.readline().strip()
+    if not line:
+        return
+    low_s, high_s = line.split('-')
+    low, high = int(low_s), int(high_s)
+
+    # Part Two as required by the prompt
+    result = count_passwords(low, high, require_exact_pair=True)
+    sys.stdout.write(str(result))
+
+if __name__ == "__main__":
+    solve()
+
+DEBUGGING INVOKED: 0
+
+PLANNING VERIFICATION SUMMARY (3 plan evaluations; conf 92/86/78):
+- Plan 1 ranked best: generate only non-decreasing sequences, track run lengths, then filter by range.
+- Plan 2 judged equivalent but adds optional pruning that could introduce mistakes if attempted.
+- Plan 3 (digit DP with tight bounds) is correct in principle but more complex to implement.
+- Leading-zero semantics were the main cited risk for all plans, especially DP variants.
+- Overall recommendation: stick to simple generation with run-length tracking.
+
+RETRIEVAL SUMMARY (exemplars + algorithm tutorial):
+- Retrieved three digit-constraint exemplars: brute-force with pruning, adjacent-equality scan, and frequency counting variant.
+- Emphasized run-length encoding to detect "exactly two" groups.
+- Highlighted monotone digit generation to reduce the search space to 5005 sequences.
+- Tutorial explained tracking last digit + run length during backtracking and filtering by range.
+- Learned techniques: early monotonic pruning, run-length tracking, and digit sequence generation.

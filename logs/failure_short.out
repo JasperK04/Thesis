@@ -1,0 +1,41 @@
+PACEcoding short log (AoC 2016 Day 19, Part 2) "An Elephant Named Joseph"
+
+CODE:
+import sys
+
+def solve(n: int) -> int:
+    # Largest power of 2 <= n
+    p = 1 << (n.bit_length() - 1)
+    m = n - p
+    if m == 0:
+        return n
+    return 2 * m
+
+def main():
+    data = sys.stdin.read().strip().split()
+    if not data:
+        return
+    n = int(data[0])
+    print(solve(n))
+
+if __name__ == "__main__":
+    main()
+
+DEBUGGING INVOKED: 5
+
+PLANNING VERIFICATION SUMMARY (3 plans evaluated; conf 42/18/74):
+- Plan 1 flagged as internally inconsistent (formula switches mid-plan).
+- Plan 2 formula contradicts its own sample check (m*2+1 vs sample=2).
+- Plan 3 favored: acknowledges formula ambiguity and suggests deque simulation.
+- Overall: verification notes high risk of variant mismatch for closed-form.
+
+RETRIEVAL SUMMARY:
+- Retrieval emphasized a closed-form Josephus variant based on largest power of 2.
+- Also provided classic Josephus recurrence and a deque-based simulation approach.
+- The closed-form given in retrieval conflicts with the sample for this exact variant.
+
+FAILURE ANALYSIS:
+- The code applies a power-of-2 closed-form that does not match AoC 2016 Day 19 Part 2.
+- This variant's correct closed-form is based on powers of 3, not powers of 2.
+- The planning stage showed uncertainty and conflicting formulas; the final code picked the wrong one.
+

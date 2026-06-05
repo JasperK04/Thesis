@@ -1,0 +1,82 @@
+MapCoder short log (AoC 2022 Day 7 part 2) "No Space Left On Device"
+
+CODE:
+import sys
+
+def solve():
+    lines = [line.rstrip("\n") for line in sys.stdin if line.strip() != ""]
+    path = []
+    dir_sum = {}  # key: tuple(path_prefix), value: total size
+
+    def add_size(sz):
+        # add to all ancestors including current directory
+        for k in range(len(path) + 1):
+            key = tuple(path[:k])
+            dir_sum[key] = dir_sum.get(key, 0) + sz
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("$"):
+            parts = line.split()
+            if parts[1] == "cd":
+                arg = parts[2]
+                if arg == "/":
+                    path = []
+                elif arg == "..":
+                    if path:
+                        path.pop()
+                else:
+                    path.append(arg)
+            # "$ ls" has no direct action; next lines are handled by else
+            i += 1
+        else:
+            a, b = line.split(maxsplit=1)
+            if a != "dir":
+                add_size(int(a))
+            i += 1
+
+    used = dir_sum.get((), 0)
+    total_disk = 70000000
+    need_free = 30000000
+    current_free = total_disk - used
+    required = need_free - current_free
+    if required <= 0:
+        required = 0
+
+    ans = None
+    for sz in dir_sum.values():
+        if sz >= required and (ans is None or sz < ans):
+            ans = sz
+
+    print(ans if ans is not None else 0)
+
+if __name__ == "__main__":
+    solve()
+
+DEBUGGING INVOKED: 0
+
+PLANNING VERIFICATION SUMMARY (3 checks; conf 96/95/96):
+- All checks agree the ancestor-accumulation method is correct for Part 2.
+- Core reasoning validated: each file size is added to every ancestor, so dir totals match subtree sums.
+- The path stack and tuple keys correctly identify directories across cd changes.
+- The required free-space calculation is correct: required = need_free - current_free.
+- The selection step (min dir size >= required) is correct for the deletion target.
+- cd handling was explicitly called out as correct for / and .. cases.
+- dir listings are ignored for size, which matches the intended parsing strategy.
+- The plan is deterministic and linear in input size times depth.
+- No correctness issues flagged by any verifier.
+- Alternative plan noted: build an explicit tree and run postorder DFS.
+- Alternative plan judged equivalent for Part 2 outcome.
+- Efficiency considerations are acceptable for AoC inputs.
+
+RETRIEVAL SUMMARY (exemplars + algorithm tutorial):
+- Retrieved three related filesystem/aggregation exemplars.
+- Exemplar 1: direct parsing + ancestor size accumulation on the fly.
+- Exemplar 2: compute free space then choose smallest qualifying directory.
+- Exemplar 3: build a tree and compute sizes via postorder traversal.
+- Algorithm tutorial emphasized two valid strategies: on-the-fly accumulation vs postorder DFS.
+- Parsing model: commands update current location; ls output provides contents.
+- Directory totals are subtree sums; files are leaves.
+- Part 2 is a threshold filter + minimum selection.
+- Complexity guidance: linear in number of nodes/lines, plus minor depth factor.
