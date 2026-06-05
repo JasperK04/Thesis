@@ -234,5 +234,7 @@ outputs/
 
 stats.py
 generate_latex_tables.py
+per_year.py
 replace_is_solved.py
 run
+*.tex
