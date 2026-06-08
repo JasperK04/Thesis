@@ -98,12 +98,14 @@ class BaseStrategy(object):
 
             while cur_pass < self.pass_at_k and status != "passed":
                 # for _ in range(10):
-                #     try:
-                response, prompt_tokens, completion_tokens = self.run_single_pass(item)
+                try:
+                    response, prompt_tokens, completion_tokens = self.run_single_pass(
+                        item
+                    )
                 #     break
-                # except Exception as e:
-                #     time.sleep(5)
-                #     pass
+                except Exception as e:
+                    #     time.sleep(5)
+                    break
 
                 if hasattr(self, "parse_code"):
                     cur_imp = self.parse_code(response)
